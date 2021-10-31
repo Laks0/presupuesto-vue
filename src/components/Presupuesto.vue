@@ -1,13 +1,17 @@
 <template>
 	<div>
-		<treelist :data-source="data"
+		<treelist :data-source="dataMuestra"
 			:editable="{mode: 'incell', move: true}"
+			:navigatable="true"
+			:drop="checkDrop"
+			:toolbar="['create']"
+			@save="onEdit"
 		>
 
-			<treelist-column :field="'Nombre'"></treelist-column>
-			<treelist-column :field="'Cantidad'"></treelist-column>
-			<treelist-column :editable="noEditable" :field="'Precio'"></treelist-column>
-			<treelist-column :editable="noEditable" :width="90" :field="'id'"></treelist-column>
+			<treelist-column :field="'nombre'"></treelist-column>
+			<treelist-column :editable="independientes" :field="'vu'"></treelist-column>
+			<treelist-column :editable="independientes" :field="'cantidad'"></treelist-column>
+			<treelist-column :editable="noEditable" :lockable="false" :field="'precio'"></treelist-column>
 		</treelist>
 	</div>
 </template>
@@ -23,18 +27,54 @@ export default {
 	},
 	data() {
 		return {
-			data: [
-				{id: 1, parentId: null, Nombre: "Rubro"},
-				{id: 2, parentId: 1, Nombre: "Tarea"},
-				{id: 3, parentId: 1, Nombre: "Material", Cantidad: 2},
-				{id: 4, parentId: 2, Nombre: "Mano de obra", Cantidad: 5},
-			]
+			dataMuestra: [
+				{id: 1, parentId: null, tipo: "Rubro", nombre: "Rubro"},
+				{id: 2, parentId: 1, tipo: "Tarea", nombre: "Tarea"},
+				{id: 3, parentId: 1, tipo: "Material", nombre: "Material", vu: 2},
+				{id: 4, parentId: 2, tipo: "Mano", nombre: "Mano de obra", cantidad: 5},
+			],
 		};
 	},
 	methods: {
+		// Verifica si el drop es válido
+		checkDrop(evento) {
+			// Si el concepto que se está moviendo es dependiente
+			// o el destino es independiente, es inválido
+			if (!this.independientes(evento.source) || this.independientes(evento.destination)) {
+				evento.setValid(false);
+			}
+		},
+
+		// FUNCIONES BOOLEANAS DE EDITABLES //
 		noEditable: function () {
 			return false;
 		},
-	}
+		// Devuelve falso cuando es un concepto dependiente (rubro o tarea)
+		independientes: function (concepto) {
+			return concepto.tipo != "Rubro" && concepto.tipo != "Tarea";
+		},
+
+		calcularPrecio: function (concepto) {
+			if ( concepto.vu === null || concepto.cantidad === null ) {
+				return null;
+			}
+			return concepto.vu * concepto.cantidad;
+		},
+
+		//   EVENTOS   //
+
+		// editar
+		onEdit: function (ev) {
+			let concepto = ev.model;
+
+			if (this.independientes(concepto)) {
+				// Si se cambió el VU o la cantidad
+				if ("vu" in ev.values || "cantidad" in ev.values) {
+					// Se mezclan los valores cambiados con los viejos
+					concepto.precio = this.calcularPrecio(Object.assign(concepto, ev.values));
+				}
+			}
+		},
+	},
 }
 </script>
