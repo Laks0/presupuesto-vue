@@ -9,9 +9,22 @@
 		>
 
 			<treelist-column :field="'nombre'"></treelist-column>
-			<treelist-column :editable="independientes" :field="'vu'"></treelist-column>
-			<treelist-column :editable="independientes" :field="'cantidad'"></treelist-column>
-			<treelist-column :editable="noEditable" :lockable="false" :field="'precio'"></treelist-column>
+
+			<treelist-column
+				:editable="independientes"
+				:field="'vu'"
+			></treelist-column>
+
+			<treelist-column
+				:editable="independientes"
+				:field="'cantidad'"
+			></treelist-column>
+
+			<treelist-column
+				:editable="noEditable"
+				:lockable="false"
+				:field="'precio'"
+			></treelist-column>
 		</treelist>
 	</div>
 </template>
