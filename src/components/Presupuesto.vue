@@ -24,6 +24,7 @@
 				:editable="noEditable"
 				:lockable="false"
 				:field="'precio'"
+				:format="'{0:c}'"
 			></treelist-column>
 		</treelist>
 	</div>
