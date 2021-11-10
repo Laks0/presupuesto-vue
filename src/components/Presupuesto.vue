@@ -41,6 +41,7 @@ export default {
 	},
 	data: function() {
 		return {
+			index: 0,
 			dataSource: {
 				aggregate: [
 					{ field: "precio", aggregate: "sum" }
@@ -58,7 +59,6 @@ export default {
 	methods: {
 		// Encuentra un concepto por id
 		encontrarPorId: function(id) {
-			console.log(this);
 			return this.dataSource.data.find(concepto => concepto.id === id);
 		},
 
@@ -96,15 +96,23 @@ export default {
 			if (this.independientes(concepto)) {
 				// Si se cambió el VU o la cantidad
 				if ("vu" in ev.values || "cantidad" in ev.values) {
+					concepto = Object.assign(concepto, ev.values);
 					// Se mezclan los valores cambiados con los viejos
-					concepto.precio = this.calcularPrecio(Object.assign(concepto, ev.values));
+					concepto.precio = this.calcularPrecio(concepto);
 					this.actualizarPrecio(this.encontrarPorId(concepto.parentId));
 				}
 			}
 		},
 		// función recursiva que actualiza los precios
 		actualizarPrecio: function(concepto) {
-			console.log(concepto, "#= sum #");
+			const hijos = this.dataSource.data.filter((e) => e.parentId === concepto.id);
+			const nuevoPrecio = hijos.reduce((prev, con) => prev + con.precio);
+			concepto.precio = nuevoPrecio;
+
+			if (concepto.parentId === null) {
+				return;
+			}
+
 		},
 	},
 }
