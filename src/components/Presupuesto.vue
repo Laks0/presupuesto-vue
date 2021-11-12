@@ -90,7 +90,6 @@ export default {
 			let cambiado = data.find(concepto => concepto.id === ev.source.id);
 			cambiado.parentId = ev.destination.id;
 			this.localData = data;
-			console.log(this.localData);
 		},
 
 		// FUNCIONES BOOLEANAS DE EDITABLES //
@@ -102,10 +101,35 @@ export default {
 			return concepto.tipo != "Rubro" && concepto.tipo != "Tarea";
 		},
 
+		// Función recursiva que calcula el acumulado de los precios de los hijos
+		calcularPrecio: function (id) {
+			const data = [...this.localData];
+			var aCalcular;
+			let precio = 0;
+
+			data.forEach((concepto) => {
+				if (concepto.parentId === id && concepto.precio != null) {
+					precio += concepto.precio;
+				}
+				if (concepto.id === id) {
+					aCalcular = concepto;
+				}
+			});
+
+			aCalcular.precio = precio;
+			this.localData = data;
+
+			if (aCalcular.parentId != null) {
+				this.calcularPrecio(aCalcular.parentId);
+			}
+		},
+
 		//   EVENTOS   //
 
 		// editar
 		onSave: function (ev) {
+			// Variable verifica si el precio se cambió para poder calcular el del padre
+			let cambioPrecio = false;
 			const data = [...this.localData];
 			data.forEach((concepto) => {
 				if (concepto.id === ev.model.id) {
@@ -114,6 +138,7 @@ export default {
 
 					if (keyCambiada === "vu" || keyCambiada === "cantidad") {
 						concepto.precio = concepto.vu * concepto.cantidad;
+						cambioPrecio = true;
 					}
 
 					return concepto;
@@ -121,6 +146,10 @@ export default {
 			});
 
 			this.localData = data;
+
+			if (cambioPrecio) {
+				this.calcularPrecio(ev.model.parentId);
+			}
 		},
 	},
 }
