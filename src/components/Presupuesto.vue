@@ -86,10 +86,10 @@ export default {
 				return;
 			}
 
-			//const data = [...this.localData];
-			//let cambiado = data.find(concepto => concepto.id === ev.source.id);
-			//cambiado.parentId = ev.destination.id;
-			//this.localData = data;
+			const data = [...this.localData];
+			let cambiado = data.find(concepto => concepto.id === ev.source.id);
+			cambiado.parentId = ev.destination.id;
+			this.localData = data;
 			console.log(this.localData);
 		},
 
