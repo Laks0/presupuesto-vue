@@ -1,11 +1,17 @@
 <template>
 	<div>
-		<treelist :data-source="dataSource"
+		<treelistdatasource
+				ref="dataSource"
+				:data="localData"
+				:schema-model="model"
+				></treelistdatasource>
+		
+		<treelist 
+			data-source-ref="dataSource"
 			:editable="{mode: 'incell', move: true}"
 			:navigatable="true"
 			:drop="checkDrop"
-			:toolbar="['create']"
-			@save="onEdit"
+			@save="onSave"
 		>
 
 			<treelist-column :field="'nombre'"></treelist-column>
@@ -32,43 +38,59 @@
 
 <script>
 import { TreeList, TreeListColumn } from "@progress/kendo-treelist-vue-wrapper";
+import { TreeListDataSource } from "@progress/kendo-datasource-vue-wrapper";
 
 export default {
 	name: "Presupuesto",
 	components: {
 		"treelist": TreeList,
-		"treelist-column": TreeListColumn
+		"treelist-column": TreeListColumn,
+		"treelistdatasource": TreeListDataSource,
 	},
 	data: function() {
 		return {
-			index: 0,
-			dataSource: {
-				aggregate: [
-					{ field: "precio", aggregate: "sum" }
-				],
-				data: [
-					{id: 1, parentId: null, tipo: "Rubro", nombre: "Rubro"},
-					{id: 2, parentId: 1, tipo: "Tarea", nombre: "Tarea"},
-					{id: 3, parentId: 1, tipo: "Material", nombre: "Material", vu: 2},
-					{id: 4, parentId: 2, tipo: "Mano", nombre: "Mano de obra", cantidad: 5},
-				],
-			}
+			model: {
+				id: "id",
+				parentId: "parentId",
+				fields: {
+					tipo: {field: "tipo", type: "string"},
+					nombre: {field: "nombre", type: "string"},
+					vu: {field: "vu", type: "number"},
+					cantidad: {field: "cantidad", type: "number"},
+					precio: {field: "precio", type: "number"},
+				},
+				expanded: true,
+			},
+
+			localData: [
+				{id: 1, parentId: null, tipo: "Rubro", nombre: "Rubro"},
+				{id: 2, parentId: 1, tipo: "Tarea", nombre: "Tarea"},
+				{id: 3, parentId: 1, tipo: "Material", nombre: "Material", vu: 2},
+				{id: 4, parentId: 2, tipo: "Mano", nombre: "Mano de obra", cantidad: 5},
+			],
 		};
 	},
 
 	methods: {
 		// Encuentra un concepto por id
 		encontrarPorId: function(id) {
-			return this.dataSource.data.find(concepto => concepto.id === id);
+			return this.localData.find(concepto => concepto.id === id);
 		},
 
 		// Verifica si el drop es válido
-		checkDrop(evento) {
+		checkDrop(ev) {
 			// Si el concepto que se está moviendo es dependiente
 			// o el destino es independiente, es inválido
-			if (!this.independientes(evento.source) || this.independientes(evento.destination)) {
-				evento.setValid(false);
+			if (!this.independientes(ev.source) || this.independientes(ev.destination)) {
+				ev.setValid(false);
+				return;
 			}
+
+			//const data = [...this.localData];
+			//let cambiado = data.find(concepto => concepto.id === ev.source.id);
+			//cambiado.parentId = ev.destination.id;
+			//this.localData = data;
+			console.log(this.localData);
 		},
 
 		// FUNCIONES BOOLEANAS DE EDITABLES //
@@ -80,39 +102,25 @@ export default {
 			return concepto.tipo != "Rubro" && concepto.tipo != "Tarea";
 		},
 
-		calcularPrecio: function (concepto) {
-			if ( concepto.vu === null || concepto.cantidad === null ) {
-				return null;
-			}
-			return concepto.vu * concepto.cantidad;
-		},
-
 		//   EVENTOS   //
 
 		// editar
-		onEdit: function (ev) {
-			let concepto = ev.model;
+		onSave: function (ev) {
+			const data = [...this.localData];
+			data.forEach((concepto) => {
+				if (concepto.id === ev.model.id) {
+					const keyCambiada = Object.keys(ev.values)[0];
+					concepto[keyCambiada] = ev.values[keyCambiada];
 
-			if (this.independientes(concepto)) {
-				// Si se cambió el VU o la cantidad
-				if ("vu" in ev.values || "cantidad" in ev.values) {
-					concepto = Object.assign(concepto, ev.values);
-					// Se mezclan los valores cambiados con los viejos
-					concepto.precio = this.calcularPrecio(concepto);
-					this.actualizarPrecio(this.encontrarPorId(concepto.parentId));
+					if (keyCambiada === "vu" || keyCambiada === "cantidad") {
+						concepto.precio = concepto.vu * concepto.cantidad;
+					}
+
+					return concepto;
 				}
-			}
-		},
-		// función recursiva que actualiza los precios
-		actualizarPrecio: function(concepto) {
-			const hijos = this.dataSource.data.filter((e) => e.parentId === concepto.id);
-			const nuevoPrecio = hijos.reduce((prev, con) => prev + con.precio);
-			concepto.precio = nuevoPrecio;
+			});
 
-			if (concepto.parentId === null) {
-				return;
-			}
-
+			this.localData = data;
 		},
 	},
 }
