@@ -12,6 +12,7 @@
     "@progress/kendo-theme-default": "^4.42.0",
     "@progress/kendo-treelist-vue-wrapper": "^2021.3.914",
     "@progress/kendo-ui": "^2021.3.914",
+    "@progress/kendo-vue-layout": "^2.6.3",
     "core-js": "^3.6.5",
     "mongoose": "^6.0.12",
     "passport": "^0.5.0",

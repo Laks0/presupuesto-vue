@@ -1,14 +1,13 @@
 <template>
-	<Presupuesto/>
+	<MenuPrincipal/>
 </template>
 
 <script>
-import Presupuesto from "./components/Presupuesto"
-
+import MenuPrincipal from "./components/Principal/MenuPrincipal.vue"
 export default {
 	name: "App",
 	components: {
-		Presupuesto
+		MenuPrincipal,
 	}
 }
 </script>

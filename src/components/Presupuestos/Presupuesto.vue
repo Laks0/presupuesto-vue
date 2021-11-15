@@ -77,7 +77,7 @@ export default {
 			return this.localData.find(concepto => concepto.id === id);
 		},
 
-		// Verifica si el drop es válido
+		// Funcion que se ejecuta en cada drop
 		checkDrop(ev) {
 			// Si el concepto que se está moviendo es dependiente
 			// o el destino es independiente, es inválido
@@ -90,6 +90,9 @@ export default {
 			let cambiado = data.find(concepto => concepto.id === ev.source.id);
 			cambiado.parentId = ev.destination.id;
 			this.localData = data;
+
+			this.calcularPrecio(ev.destination.id);
+			this.calcularPrecio(ev.source.id);
 		},
 
 		// FUNCIONES BOOLEANAS DE EDITABLES //
