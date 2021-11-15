@@ -9,6 +9,7 @@
   },
   "dependencies": {
     "@progress/kendo-datasource-vue-wrapper": "^2021.3.1109",
+    "@progress/kendo-licensing": "^1.2.1",
     "@progress/kendo-theme-default": "^4.42.0",
     "@progress/kendo-treelist-vue-wrapper": "^2021.3.914",
     "@progress/kendo-ui": "^2021.3.914",
