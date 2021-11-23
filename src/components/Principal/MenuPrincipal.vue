@@ -1,7 +1,7 @@
 <template>
 	<tabstrip :selected="selected" @select="onSelect">
 		<tabstrip-tab :title="'Usuario'">
-			USUARIO	
+			<Login/>	
 		</tabstrip-tab>
 		<tabstrip-tab :title="'Presupuestos'">
 			PRESUPUESTO
@@ -11,12 +11,14 @@
 
 <script>
 import { TabStrip, TabStripTab } from "@progress/kendo-vue-layout";
+import Login from "./Login/Login.vue";
 
 export default {
 	name: "MenuPrincipal",
 	components: {
 		"tabstrip": TabStrip,
-		"tabstrip-tab": TabStripTab
+		"tabstrip-tab": TabStripTab,
+		Login: Login,
 	},
 
 	data: function () {
