@@ -17,6 +17,7 @@
     "@progress/kendo-vue-dialogs": "^2.6.3",
     "@progress/kendo-vue-form": "^2.6.3",
     "@progress/kendo-vue-inputs": "^2.6.3",
+    "@progress/kendo-vue-intl": "^2.6.3",
     "@progress/kendo-vue-labels": "^2.6.3",
     "@progress/kendo-vue-layout": "^2.6.3",
     "axios": "^0.24.0",
