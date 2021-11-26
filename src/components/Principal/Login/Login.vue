@@ -21,9 +21,8 @@ export default {
 		handleSubmit (dataItem) {
 			// Se llama a Vuex a intentar logear
 			this.$store.dispatch("login", dataItem)
-				.then(res => console.log(res))
+				.then(res => res)
 				.catch(err => {
-					console.log(err.response.data);
 					this.error = true;
 					this.mensajeError = err.response.data;
 				});

@@ -47,6 +47,17 @@ export default {
 		"treelist-column": TreeListColumn,
 		"treelistdatasource": TreeListDataSource,
 	},
+
+	props: {
+		customData: String,
+	},
+
+	beforeMount() {
+		if (customData) {
+			this.localData = JSON.parse(customData);
+		}
+	},
+
 	data: function() {
 		return {
 			model: {
@@ -63,10 +74,6 @@ export default {
 			},
 
 			localData: [
-				{id: 1, parentId: null, tipo: "Rubro", nombre: "Rubro"},
-				{id: 2, parentId: 1, tipo: "Tarea", nombre: "Tarea"},
-				{id: 3, parentId: 1, tipo: "Material", nombre: "Material", vu: 2},
-				{id: 4, parentId: 2, tipo: "Mano", nombre: "Mano de obra", cantidad: 5},
 			],
 		};
 	},
@@ -153,6 +160,10 @@ export default {
 			if (cambioPrecio) {
 				this.calcularPrecio(ev.model.parentId);
 			}
+		},
+
+		getTree: function() {
+			return JSON.stringify(this.localData);
 		},
 	},
 }

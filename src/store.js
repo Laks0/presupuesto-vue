@@ -24,7 +24,6 @@ const store = createStore({
 				})
 					.then(res => {
 						commit("login", res.data);
-						console.log(res);
 						resolve(res);
 					})
 					.catch(err => {
@@ -35,7 +34,8 @@ const store = createStore({
 	},
 
 	getters: {
-		isLogged: state => state.logged,
+		logged: state => state.logged,
+		user: state => state.user,
 	},
 })
 
