@@ -42,6 +42,7 @@
 				>
 					Aceptar
 				</kbutton>
+				<span class="k-icon k-i-loading" style="font-size: 32px" v-if="cargando"></span>
 			</div>
 		</fieldset>
 	</form-element>
@@ -58,6 +59,9 @@ export default {
 		"form-element": FormElement,
 		kbutton: Button,
 		forminput: FormInput,
+	},
+	props: {
+		cargando: Boolean
 	},
 }
 </script>

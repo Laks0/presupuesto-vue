@@ -1,6 +1,6 @@
 <template>
 	<k-form @submit="handleSubmit">
-		<login-content/>
+		<login-content :cargando="cargando"/>
 
 			<p v-if="error">{{mensajeError}}</p>
 	</k-form>
@@ -19,10 +19,12 @@ export default {
 	methods: {
 		// En sumbit de loginForm
 		handleSubmit (dataItem) {
+			this.cargando = true;
 			// Se llama a Vuex a intentar logear
 			this.$store.dispatch("login", dataItem)
 				.then(res => res)
 				.catch(err => {
+					this.cargando = false;
 					this.error = true;
 					this.mensajeError = err.response.data;
 				});
@@ -33,6 +35,7 @@ export default {
 		return {
 			error: false,
 			mensajeError: "",
+			cargando: false
 		};
 	},
 }
