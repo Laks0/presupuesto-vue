@@ -1,5 +1,5 @@
 <template>
-	<tabstrip :selected="selected" @select="onSelect" :tabPosition="'left'" :style="{ height: '98vh' }">
+	<tabstrip :selected="selected" @select="onSelect" :tabPosition="'top'" :style="{ height: '98vh' }">
 	<tabstrip-tab :title="'Usuario'" >
 		<InfoUsuario v-if="logged"/>
 		<Login v-else/>	

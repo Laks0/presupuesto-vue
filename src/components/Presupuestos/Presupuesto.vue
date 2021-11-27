@@ -53,8 +53,8 @@ export default {
 	},
 
 	beforeMount() {
-		if (customData) {
-			this.localData = JSON.parse(customData);
+		if (this.customData) {
+			this.localData = JSON.parse(this.customData);
 		}
 	},
 

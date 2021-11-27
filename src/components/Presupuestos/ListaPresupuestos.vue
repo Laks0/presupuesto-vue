@@ -5,7 +5,8 @@
 		<window v-if="presupuestoDialogo"
 						:title="'Nuevo presupuesto'"
 						@close="togglePresupuestoDialogo"
-						:initial-width="400">
+						:initial-width="400"
+						:resizable="false">
 
 		<form class="k-form">
 			<fieldset :style="{ borderStyle:'none' }">
@@ -34,8 +35,18 @@
 
 		</window>
 
+		<EditorPresupuesto
+				:presupuesto="presupuestoSeleccionado"
+				v-if="editando"
+				:toggle="toggleEditando"
+				:key="presupuestoSeleccionado"/>
+
 		<k-button :style="{ marginBottom: '10px' }" :primary="true" @click="togglePresupuestoDialogo">Nuevo presupuesto</k-button>
-		<grid :data-items="gridData" :columns="columns">
+
+		<grid
+				:data-items="gridData"
+				:columns="columns"
+				@rowclick="onRowClick">
 		</grid>
 	</div>
 </template>
@@ -45,12 +56,14 @@ import { Window } from "@progress/kendo-vue-dialogs"
 import { Grid } from "@progress/kendo-vue-grid";
 import { Button } from "@progress/kendo-vue-buttons";
 import http from "../../http-common.js";
+import EditorPresupuesto from "./EditorPresupuesto.vue";
 
 export default {
 	components: {
 		grid: Grid,
 		"k-button": Button,
-		window: Window
+		window: Window,
+		EditorPresupuesto: EditorPresupuesto,
 	},
 
 	created() {
@@ -71,7 +84,9 @@ export default {
 			],
 			gridData: [],
 			presupuestoDialogo: false,
-			nuevoNombre: ""
+			presupuestoSeleccionado: {},
+			nuevoNombre: "",
+			editando: false,
 		};
 	},
 
@@ -93,6 +108,17 @@ export default {
 					this.togglePresupuestoDialogo();
 				})
 				.catch(err => console.error(err));
+		},
+
+		onRowClick: function(ev) {
+			if (!this.editando) {
+				this.presupuestoSeleccionado = ev.dataItem;
+				this.toggleEditando();
+			}
+		},
+
+		toggleEditando: function() {
+			this.editando = !this.editando;
 		},
 	},
 }
