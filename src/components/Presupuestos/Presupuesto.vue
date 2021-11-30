@@ -1,35 +1,48 @@
 <template>
 	<div>
+		<div>
+			<k-button
+					:primary="true"
+					:style="{ marginBottom: '10px' }"
+					@click="nuevoRubro">
+				Nuevo Rubro
+			</k-button>
+
+		</div>
+
 		<treelistdatasource
 				ref="dataSource"
 				:data="localData"
 				:schema-model="model"
 				></treelistdatasource>
-		
-		<treelist 
+
+		<treelist
 			data-source-ref="dataSource"
 			:editable="{mode: 'incell', move: true}"
 			:navigatable="true"
 			:drop="checkDrop"
 			@save="onSave"
+			height="70vh"
 		>
 
-			<treelist-column :field="'nombre'"></treelist-column>
+			<treelist-column :field="'nombre'" :title="'Nombre'"></treelist-column>
 
 			<treelist-column
 				:editable="independientes"
+				:title="'Valor Unitario'"
 				:field="'vu'"
 			></treelist-column>
 
 			<treelist-column
 				:editable="independientes"
 				:field="'cantidad'"
+				:title="'Cantidad'"
 			></treelist-column>
 
 			<treelist-column
 				:editable="noEditable"
-				:lockable="false"
 				:field="'precio'"
+				:title="'Precio'"
 				:format="'{0:c}'"
 			></treelist-column>
 		</treelist>
@@ -37,8 +50,10 @@
 </template>
 
 <script>
+import http from "../../http-common.js";
 import { TreeList, TreeListColumn } from "@progress/kendo-treelist-vue-wrapper";
 import { TreeListDataSource } from "@progress/kendo-datasource-vue-wrapper";
+import { Button } from "@progress/kendo-vue-buttons";
 
 export default {
 	name: "Presupuesto",
@@ -46,16 +61,37 @@ export default {
 		"treelist": TreeList,
 		"treelist-column": TreeListColumn,
 		"treelistdatasource": TreeListDataSource,
+		"k-button": Button,
 	},
 
 	props: {
-		customData: String,
+		customData: Object,
+		ok: Function,
+		error: Function,
+		cargando: Function,
+		actualizar: Function,
 	},
 
-	beforeMount() {
+	mounted() {
 		if (this.customData) {
-			this.localData = JSON.parse(this.customData);
+			this.localData = JSON.parse(this.customData.tabla);
 		}
+	},
+
+	updated() {
+		// Autoguardado en la base de datos
+		let tabla = JSON.stringify(this.localData);
+		let p_id = this.customData.p_id;
+
+		this.cargando();
+		http.put("/presupuesto", {tabla, p_id})
+			.then(() => {
+				this.ok();
+				this.actualizar(tabla, p_id);
+			})
+			.catch(() => {
+				this.error();
+			});
 	},
 
 	data: function() {
@@ -65,7 +101,8 @@ export default {
 				parentId: "parentId",
 				fields: {
 					tipo: {field: "tipo", type: "string"},
-					nombre: {field: "nombre", type: "string"},
+					// Rubro, Tarea, Mano, Material
+					nombre: {field: "nombre", type: "string", validation: {required: true}},
 					vu: {field: "vu", type: "number"},
 					cantidad: {field: "cantidad", type: "number"},
 					precio: {field: "precio", type: "number"},
@@ -73,12 +110,23 @@ export default {
 				expanded: true,
 			},
 
-			localData: [
-			],
+			localData: [],
 		};
 	},
 
 	methods: {
+		nuevoRubro: function() {
+			const nuevaData = [...this.localData];
+			nuevaData.unshift({
+				id: Date.now(),
+				tipo: "Rubro",
+				precio: 0,
+				parentId: null,
+				nombre: "Nuevo Rubro"});
+
+			this.localData = nuevaData;
+		},
+
 		// Encuentra un concepto por id
 		encontrarPorId: function(id) {
 			return this.localData.find(concepto => concepto.id === id);

@@ -38,7 +38,7 @@
 		<EditorPresupuesto
 				:presupuesto="presupuestoSeleccionado"
 				v-if="editando"
-				:toggle="toggleEditando"
+				:cerrar="cerrarEditor"
 				:key="presupuestoSeleccionado"/>
 
 		<k-button :style="{ marginBottom: '10px' }" :primary="true" @click="togglePresupuestoDialogo">Nuevo presupuesto</k-button>
@@ -119,6 +119,15 @@ export default {
 
 		toggleEditando: function() {
 			this.editando = !this.editando;
+		},
+		cerrarEditor: function(tabla, p_id) {
+			this.gridData.forEach((data) => {
+				if (data.p_id === p_id) {
+					data.tabla = tabla;
+					return;
+				}
+			});
+			this.editando = false;
 		},
 	},
 }
