@@ -1,11 +1,25 @@
 <template>
 	<div>
-		<div>
+		<div class="botones">
 			<k-button
 					:primary="true"
-					:style="{ marginBottom: '10px' }"
-					@click="nuevoRubro">
+					@click="nuevoConcepto('Rubro')">
 				Nuevo Rubro
+			</k-button>
+			<k-button
+					:primary="true"
+					@click="nuevoConcepto('Tarea')">
+				Nueva Tarea
+			</k-button>
+			<k-button
+					:primary="true"
+					@click="nuevoConcepto('Mano')">
+				Nueva Mano de Obra
+			</k-button>
+			<k-button
+					:primary="true"
+					@click="nuevoConcepto('Material')">
+				Nuevo Material
 			</k-button>
 
 		</div>
@@ -115,14 +129,14 @@ export default {
 	},
 
 	methods: {
-		nuevoRubro: function() {
+		nuevoConcepto: function(tipo) {
 			const nuevaData = [...this.localData];
 			nuevaData.unshift({
 				id: Date.now(),
-				tipo: "Rubro",
+				tipo: tipo,
 				precio: 0,
 				parentId: null,
-				nombre: "Nuevo Rubro"});
+				nombre: tipo});
 
 			this.localData = nuevaData;
 		},
@@ -134,9 +148,9 @@ export default {
 
 		// Funcion que se ejecuta en cada drop
 		checkDrop(ev) {
-			// Si el concepto que se está moviendo es dependiente
+			// Si el concepto que se está moviendo es un rubro
 			// o el destino es independiente, es inválido
-			if (!this.independientes(ev.source) || this.independientes(ev.destination)) {
+			if (ev.source.tipo === "Rubro" || this.independientes(ev.destination) || ev.source.tipo === ev.destination.tipo) {
 				ev.setValid(false);
 				return;
 			}
@@ -216,3 +230,9 @@ export default {
 	},
 }
 </script>
+
+<style>
+.botones > * {
+	margin: 5px;
+}
+</style>
