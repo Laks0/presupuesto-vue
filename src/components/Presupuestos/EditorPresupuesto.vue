@@ -2,8 +2,12 @@
 	<window
 			@close="cerrar(tabla, p_id)"
 			:title="presupuesto.nombre"
-			:stage="'FULLSCREEN'"
-			:maximizeButton="'false'">
+			:stage="windowStage"
+			@stagechange="stagechange"
+			:minHeight="700"
+			:initialHeight="700"
+			:minWidth="800"
+			:initialWidth="800">
 
 			<span v-if="cargando" class="k-icon k-i-loading" style="font-size: 32px;"></span>
 			<span v-if="error" class="k-icon k-i-warning" :style="{ fontSize: '32px', color: 'red' }"></span>
@@ -42,10 +46,15 @@ export default {
 			ok: false,
 			tabla: [],
 			p_id: 0,
+			windowStage: "FULLSCREEN"
 		};
 	},
 
 	methods: {
+		stagechange(ev) {
+			this.windowStage = ev.state;
+		},
+
 		actualizar(tabla, p_id) {
 			this.tabla = tabla;
 			this.p_id = p_id;

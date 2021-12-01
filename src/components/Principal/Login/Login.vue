@@ -1,5 +1,5 @@
 <template>
-	<k-form @submit="handleSubmit">
+	<k-form @submit="handleSubmit" :style="{ maxWidth: '400px' }">
 		<login-content :cargando="cargando"/>
 
 			<p v-if="error">{{mensajeError}}</p>
