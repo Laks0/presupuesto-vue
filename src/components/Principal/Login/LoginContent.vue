@@ -1,6 +1,22 @@
 <template>
 	<form-element>
 		<fieldset class="k-form-fieldset">
+			<field v-if="registrandose"
+					:id="'nombre'"
+					:name="'nombre'"
+					:label="'Nombre'"
+					:component="'myTemplate'"
+			>
+				<template v-slot:myTemplate="{props}">
+					<forminput
+							v-bind="props"
+							@change="props.onChange"
+							@blur="props.onBlur"
+							@focus="props.onFocus"
+					/>
+				</template>
+			</field>
+
 			<field
 					:id="'email'"
 					:name="'email'"
@@ -61,7 +77,8 @@ export default {
 		forminput: FormInput,
 	},
 	props: {
-		cargando: Boolean
+		cargando: Boolean,
+		registrandose: Boolean
 	},
 }
 </script>
