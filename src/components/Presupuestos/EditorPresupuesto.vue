@@ -9,29 +9,36 @@
 			:minWidth="800"
 			:initialWidth="800">
 
-			<span v-if="cargando" class="k-icon k-i-loading" style="font-size: 32px;"></span>
-			<span v-if="error" class="k-icon k-i-warning" :style="{ fontSize: '32px', color: 'red' }"></span>
-			<span v-if="ok" class="k-icon k-i-check" :style="{ fontSize: '32px', color: 'darkblue' }"></span>
-			<span v-if="ok">Guardado</span>
+		<span v-if="cargando" class="k-icon k-i-loading" style="font-size: 32px;"></span>
+		<span v-if="error" class="k-icon k-i-warning" :style="{ fontSize: '32px', color: 'red' }"></span>
+		<span v-if="ok" class="k-icon k-i-check" :style="{ fontSize: '32px', color: 'darkblue' }"></span>
+		<span v-if="ok">Guardado</span>
 
-		<arbol 
-			:actualizar="actualizar"
-			:ok="setOk"
-			:error="setError"
-			:cargando="setCargando"
-			:customData="presupuesto"/>
+		<splitter class="splitter" :orientation="'horizontal'">
+			<arbol
+				:actualizar="actualizar"
+				:ok="setOk"
+				:error="setError"
+				:cargando="setCargando"
+				:customData="presupuesto"/>
 
+			<IFCViewer/>
+		</splitter>
 	</window>
 </template>
 
 <script>
 import { Window } from "@progress/kendo-vue-dialogs";
+import { Splitter } from "@progress/kendo-layout-vue-wrapper";
 import Presupuesto from "./Presupuesto.vue";
+import IFCViewer from "./IFCViewer.vue";
 
 export default {
 	components: {
 		window: Window,
 		arbol: Presupuesto,
+		IFCViewer: IFCViewer,
+		splitter: Splitter,
 	},
 
 	props: {
@@ -77,3 +84,10 @@ export default {
 	},
 }
 </script>
+
+<style>
+.splitter {
+	height: 95%;
+	width: 98%;
+}
+</style>

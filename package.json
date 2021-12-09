@@ -10,6 +10,7 @@
   "dependencies": {
     "@progress/kendo-data-query": "^1.5.5",
     "@progress/kendo-datasource-vue-wrapper": "^2021.3.1109",
+    "@progress/kendo-layout-vue-wrapper": "^2021.3.1207",
     "@progress/kendo-licensing": "^1.2.1",
     "@progress/kendo-theme-bootstrap": "^4.42.0",
     "@progress/kendo-theme-default": "^4.42.0",
@@ -39,7 +40,9 @@
     "passport-local": "^1.0.0",
     "passport-local-mongoose": "^6.1.0",
     "vue": "^3.0.0",
-    "vuex": "^4.0.2"
+    "vuex": "^4.0.2",
+    "web-ifc-three": "^0.0.90",
+    "web-ifc-viewer": "^1.0.106"
   },
   "devDependencies": {
     "@vue/cli-plugin-babel": "~4.5.0",
