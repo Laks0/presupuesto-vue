@@ -25,6 +25,7 @@
     "@progress/kendo-vue-dropdowns": "^2.6.3",
     "@progress/kendo-vue-form": "^2.6.3",
     "@progress/kendo-vue-grid": "^2.6.3",
+    "@progress/kendo-vue-indicators": "^2.7.0",
     "@progress/kendo-vue-inputs": "^2.6.3",
     "@progress/kendo-vue-intl": "^2.6.3",
     "@progress/kendo-vue-labels": "^2.6.3",

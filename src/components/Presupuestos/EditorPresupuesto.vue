@@ -9,7 +9,7 @@
 			:minWidth="800"
 			:initialWidth="800">
 
-		<span v-if="cargando" class="k-icon k-i-loading" style="font-size: 32px;"></span>
+		<loader v-if="cargando" :type="'converging-spinner'"/>
 		<span v-if="error" class="k-icon k-i-warning" :style="{ fontSize: '32px', color: 'red' }"></span>
 		<span v-if="ok" class="k-icon k-i-check" :style="{ fontSize: '32px', color: 'darkblue' }"></span>
 		<span v-if="ok">Guardado</span>
@@ -30,6 +30,7 @@
 <script>
 import { Window } from "@progress/kendo-vue-dialogs";
 import { Splitter } from "@progress/kendo-layout-vue-wrapper";
+import { Loader } from "@progress/kendo-vue-indicators";
 import Presupuesto from "./Presupuesto.vue";
 import IFCViewer from "./IFCViewer.vue";
 
@@ -39,6 +40,7 @@ export default {
 		arbol: Presupuesto,
 		IFCViewer: IFCViewer,
 		splitter: Splitter,
+		loader: Loader,
 	},
 
 	props: {

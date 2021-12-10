@@ -58,7 +58,7 @@
 				>
 					Aceptar
 				</kbutton>
-				<span class="k-icon k-i-loading" style="font-size: 32px" v-if="cargando"></span>
+				<loader :type="'converging-spinner'" v-if="cargando"/>
 			</div>
 		</fieldset>
 	</form-element>
@@ -67,6 +67,7 @@
 <script>
 import { Field, FormElement } from "@progress/kendo-vue-form";
 import { Button } from "@progress/kendo-vue-buttons";
+import { Loader } from "@progress/kendo-vue-indicators";
 import FormInput from "./FormInput.vue";
 
 export default {
@@ -75,6 +76,7 @@ export default {
 		"form-element": FormElement,
 		kbutton: Button,
 		forminput: FormInput,
+		loader: Loader,
 	},
 	props: {
 		cargando: Boolean,
