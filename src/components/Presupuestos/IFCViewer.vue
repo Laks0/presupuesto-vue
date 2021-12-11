@@ -1,13 +1,39 @@
 <template>
-	<div ref="container" id="container">
+	<div ref="container" id="container" :style="{width: '50%', height: '97%'}">
+		<upload v-if="!archivo"
+		:files="archivo"
+		:batch="false"
+		:multiple="false"
+		:restrictions="{
+									allowedExtensions: ['.ifc']
+									}"
+		/>
 	</div>
+
 </template>
 
 <script>
-import {IfcViewerAPI, IFC} from "web-ifc-viewer";
-import {Color} from "three";
+import { Upload } from "@progress/kendo-vue-upload";
+import { IfcViewerAPI, IFC } from "web-ifc-viewer";
+import { Color } from "three";
 
 export default {
+	components: {
+		upload: Upload,
+	},
+
+	data: function () {
+		return {
+			archivo: null,
+		};
+	},
+
+	methods: {
+		agregarArchivo (ev) {
+			console.log(ev.affectedFiles);
+		},
+	},
+
 	mounted() {
 		const container = this.$refs.container;
 
@@ -65,10 +91,3 @@ export default {
 	}
 }
 </script>
-
-<style>
-	#container {
-		width: 100%;
-		height: 100%;
-	}
-</style>

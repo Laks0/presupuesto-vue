@@ -31,6 +31,7 @@
     "@progress/kendo-vue-labels": "^2.6.3",
     "@progress/kendo-vue-layout": "^2.6.3",
     "@progress/kendo-vue-popup": "^2.6.3",
+    "@progress/kendo-vue-upload": "^2.7.0",
     "axios": "^0.24.0",
     "bcryptjs": "^2.4.3",
     "core-js": "^3.6.5",

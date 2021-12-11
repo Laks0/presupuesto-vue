@@ -1,5 +1,5 @@
 <template>
-	<div>
+	<div :style="{height: '100%'}">
 		<div class="botones">
 			<k-button
 					:primary="true"
@@ -36,7 +36,7 @@
 			:navigatable="true"
 			:drop="checkDrop"
 			@save="onSave"
-			height="70vh"
+			height="94%"
 		>
 
 			<treelist-column :field="'nombre'" :title="'Nombre'"></treelist-column>
