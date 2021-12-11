@@ -104,7 +104,7 @@ export default {
 			http.post("/presupuesto", {nombre: this.nuevoNombre, user_id: this.$store.state.user.u_id})
 				.then(res => {
 					console.log(res);
-					this.gridData.push({total: 0, tabla: [], p_id: res.data.insertID, nombre: this.nuevoNombre});
+					this.gridData.push({total: 0, tabla: "[]", p_id: res.data.insertId, nombre: this.nuevoNombre});
 					this.togglePresupuestoDialogo();
 				})
 				.catch(err => console.error(err));
