@@ -105,7 +105,6 @@ export default {
 				total += concepto.precio;
 			}
 		});
-		console.log(total);
 
 		http.put("/presupuesto", {tabla, p_id, total})
 			.then(() => {
