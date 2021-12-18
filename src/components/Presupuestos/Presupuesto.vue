@@ -157,11 +157,13 @@ export default {
 
 			const data = [...this.localData];
 			let cambiado = data.find(concepto => concepto.id === ev.source.id);
+			let parentViejo = cambiado.parentId;
 			cambiado.parentId = ev.destination.id;
 			this.localData = data;
 
-			this.calcularPrecio(ev.destination.id);
-			this.calcularPrecio(ev.source.id);
+			// Por ahí no es la forma más eficiente de recalcular los precios, pero funciona
+			this.calcularPrecio(parentViejo);
+			this.calcularPrecio(cambiado.parentId);
 		},
 
 		// FUNCIONES BOOLEANAS DE EDITABLES //
