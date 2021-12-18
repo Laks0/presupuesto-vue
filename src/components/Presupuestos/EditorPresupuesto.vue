@@ -1,6 +1,6 @@
 <template>
 	<window
-			@close="cerrar(tabla, p_id)"
+			@close="cerrar(total, tabla, p_id)"
 			:title="presupuesto.nombre"
 			:stage="windowStage"
 			@stagechange="stagechange"
@@ -54,6 +54,7 @@ export default {
 			error: false,
 			ok: false,
 			tabla: [],
+			total: 0,
 			p_id: 0,
 			windowStage: "FULLSCREEN"
 		};
@@ -64,8 +65,9 @@ export default {
 			this.windowStage = ev.state;
 		},
 
-		actualizar(tabla, p_id) {
+		actualizar(total, tabla, p_id) {
 			this.tabla = tabla;
+			this.total = total;
 			this.p_id = p_id;
 		},
 		setError() {

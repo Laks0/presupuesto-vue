@@ -98,10 +98,19 @@ export default {
 		let p_id = this.customData.p_id;
 
 		this.cargando();
-		http.put("/presupuesto", {tabla, p_id})
+
+		let total = 0
+		this.localData.forEach(concepto => {
+			if (concepto.parentId === null) {
+				total += concepto.precio;
+			}
+		});
+		console.log(total);
+
+		http.put("/presupuesto", {tabla, p_id, total})
 			.then(() => {
 				this.ok();
-				this.actualizar(tabla, p_id);
+				this.actualizar(total, tabla, p_id);
 			})
 			.catch(() => {
 				this.error();

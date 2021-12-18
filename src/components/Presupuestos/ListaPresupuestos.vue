@@ -120,10 +120,11 @@ export default {
 		toggleEditando: function() {
 			this.editando = !this.editando;
 		},
-		cerrarEditor: function(tabla, p_id) {
+		cerrarEditor: function(total, tabla, p_id) {
 			this.gridData.forEach((data) => {
 				if (data.p_id === p_id) {
 					data.tabla = tabla;
+					data.total = total;
 					return;
 				}
 			});
