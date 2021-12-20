@@ -37,6 +37,7 @@
 			:drop="checkDrop"
 			@save="onSave"
 			height="70vh"
+			:style="{lineHeight: '.5'}"
 		>
 
 			<treelist-column :field="'nombre'" :title="'Nombre'"></treelist-column>
@@ -219,7 +220,7 @@ export default {
 					concepto[keyCambiada] = ev.values[keyCambiada];
 
 					if (keyCambiada === "vu" || keyCambiada === "cantidad") {
-						concepto.precio = concepto.vu * concepto.cantidad;
+						concepto.precio = (concepto.vu * concepto.cantidad) || 0;
 						cambioPrecio = true;
 					}
 

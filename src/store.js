@@ -5,12 +5,16 @@ const store = createStore({
 	state: {
 		user: {},
 		logged: false,
+		token: ""
 	},
 
 	mutations: {
-		login(state, user) {
-			state.user = user;
+		login(state, data) {
+			state.user = data.usuario;
 			state.logged = true;
+			state.token = data.token;
+
+			http.defaults.headers.common["auth-token"] = data.token;
 		}
 	},
 
@@ -36,6 +40,7 @@ const store = createStore({
 	getters: {
 		logged: state => state.logged,
 		user: state => state.user,
+		token: state => state.token,
 	},
 })
 
