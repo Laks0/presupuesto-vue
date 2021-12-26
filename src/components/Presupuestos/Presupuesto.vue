@@ -36,7 +36,8 @@
 			:navigatable="true"
 			:drop="checkDrop"
 			@save="onSave"
-			height="94%"
+			height="70vh"
+			:style="{lineHeight: '.5'}"
 		>
 
 			<treelist-column :field="'nombre'" :title="'Nombre'"></treelist-column>
@@ -98,10 +99,18 @@ export default {
 		let p_id = this.customData.p_id;
 
 		this.cargando();
-		http.put("/presupuesto", {tabla, p_id})
+
+		let total = 0
+		this.localData.forEach(concepto => {
+			if (concepto.parentId === null) {
+				total += concepto.precio;
+			}
+		});
+
+		http.put("/presupuesto", {tabla, p_id, total})
 			.then(() => {
 				this.ok();
-				this.actualizar(tabla, p_id);
+				this.actualizar(total, tabla, p_id);
 			})
 			.catch(() => {
 				this.error();
@@ -157,11 +166,13 @@ export default {
 
 			const data = [...this.localData];
 			let cambiado = data.find(concepto => concepto.id === ev.source.id);
+			let parentViejo = cambiado.parentId;
 			cambiado.parentId = ev.destination.id;
 			this.localData = data;
 
-			this.calcularPrecio(ev.destination.id);
-			this.calcularPrecio(ev.source.id);
+			// Por ahí no es la forma más eficiente de recalcular los precios, pero funciona
+			this.calcularPrecio(parentViejo);
+			this.calcularPrecio(cambiado.parentId);
 		},
 
 		// FUNCIONES BOOLEANAS DE EDITABLES //
@@ -209,7 +220,7 @@ export default {
 					concepto[keyCambiada] = ev.values[keyCambiada];
 
 					if (keyCambiada === "vu" || keyCambiada === "cantidad") {
-						concepto.precio = concepto.vu * concepto.cantidad;
+						concepto.precio = (concepto.vu * concepto.cantidad) || 0;
 						cambioPrecio = true;
 					}
 
