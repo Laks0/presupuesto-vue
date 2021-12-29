@@ -1,93 +1,133 @@
 <template>
-	<div ref="container" id="container" :style="{width: '50%', height: '97%'}">
-		<upload v-if="!archivo"
-		:files="archivo"
-		:batch="false"
-		:multiple="false"
-		:restrictions="{
-									allowedExtensions: ['.ifc']
-									}"
-		/>
-	</div>
+
+	<!--upload v-if="!archivo"
+					id="upload"
+					:files="[]"
+					:batch="false"
+					:multiple="false"
+					:restrictions="{allowedExtensions: ['.ifc']}"
+					@add="agregarArchivo"
+					/-->
+
+	<input type="file" id="file-input" />
+	<canvas id="model"/>
 
 </template>
 
 <script>
-import { Upload } from "@progress/kendo-vue-upload";
-import { IfcViewerAPI, IFC } from "web-ifc-viewer";
-import { Color } from "three";
+//import { Upload } from "@progress/kendo-vue-upload";
+
+import IfcManager from '../../IFC/IfcManager'
+import { Raycaster, Vector2 } from 'three'
 
 export default {
 	components: {
-		upload: Upload,
+//		upload: Upload,
+	},
+
+	created() {
+		this.reader = new FileReader();
 	},
 
 	data: function () {
 		return {
-			archivo: null,
+			archivo: "",
+			entityData: "",
 		};
 	},
 
 	methods: {
+		archivoCargado () {
+			if (this.reader.result) {
+				this.IFCManager.scene.ifcModel = this.IFCManager.ifcLoader.loadAsync(this.reader.result.toString());
+				this.IFCManager.scene.add(this.IFCManager.scene.ifcModel.mesh);
+
+				this.onLoaded();
+			}
+		},
+
 		agregarArchivo (ev) {
-			console.log(ev.affectedFiles);
+			if (!ev.newState[0] || !ev.newState[0].getRawFile) {
+				return;
+			}
+
+			const archivo = ev.newState[0].getRawFile();
+
+			if (archivo) {
+				this.reader.onloadend = this.archivoCargado;
+				this.reader.readAsDataURL(archivo);
+
+				return;
+			}
+		},
+
+		// Métodos del viewer
+		onLoaded: function() {
+			this.addPicking();
+			this.setupPick(this);
+		},
+		addPicking: function() {
+			this.raycaster = new Raycaster();
+			this.raycaster.firstHitOnly = true;
+			this.mouse = new Vector2();
+		},
+		cast: function(event) {
+			this.bounds = this.threeCanvas.getBoundingClientRect();
+			this.x1 = event.clientX - this.bounds.left;
+			this.x2 = this.bounds.right - this.bounds.left;
+			this.mouse.x = (this.x1 / this.x2) * 2 - 1;
+			this.y1 = event.clientY - this.bounds.top;
+			this.y2 = this.bounds.bottom - this.bounds.top;
+			this.mouse.y = -(this.y1 / this.y2) * 2 + 1;
+			this.raycaster.setFromCamera(
+				this.mouse,
+				this.IFCManager.scene.camera
+			);
+			return this.raycaster.intersectObjects(this.IFCManager.scene.ifcModels);
+		},
+		pick: function(event) {
+			this.found = this.cast(event)[0];
+			if (this.found) {
+				this.index = this.found.faceIndex;
+				this.geometry = this.found.object.geometry;
+				this.id = this.IFCManager.scene.ifcModel.getExpressId(
+					this.geometry,
+					this.index
+				);
+				this.entityData = this.id;
+			}
+		},
+		setupPick: function(component) {
+			component.threeCanvas = document.getElementById('model');
+			component.threeCanvas.ondblclick = component.pick;
 		},
 	},
 
 	mounted() {
-		const container = this.$refs.container;
+		this.IFCManager = new IfcManager("model");
 
-		// Initialize IFC.js API and add it as global variable
-		const viewer = new IfcViewerAPI({
-														container,
-														backgroundColor: new Color(0xffffff)
-																});
-		viewer.IFC.applyWebIfcConfig({
-														COORDINATE_TO_ORIGIN: true,
-														USE_FAST_BOOLS: true
-																});
-		window.webIfcAPI = viewer;
+		const self = this;
+		let input = document.getElementById("file-input");
 
-		// Set up scene
-		viewer.addAxes();
-		viewer.addGrid(50, 50);
-		viewer.IFC.setWasmPath('wasm/');
-		viewer.clipper.active = true;
-		let dimensionsActive = false;
+		input.addEventListener(
+				'change',
+				async function(changed) {
+					let file = changed.target.files[0]
+					console.log(file);
+					let ifcURL = URL.createObjectURL(file)
+					self.IFCManager.scene.ifcModel = await self.IFCManager.ifcLoader.loadAsync(ifcURL);
+					self.IFCManager.scene.add(self.IFCManager.scene.ifcModel.mesh)
 
-		// Add basic input logic
-		const handleKeyDown = (event) => {
-				if (event.code === 'KeyE') {
-						dimensionsActive = !dimensionsActive;
-						viewer.dimensions.active = dimensionsActive;
-						viewer.dimensions.previewActive = dimensionsActive;
-						viewer.IFC.unPrepickIfcItems();
-						window.onmousemove = dimensionsActive ? null : IFC.prePickIfcItem;
-				}
-				if (event.code === 'KeyD') {
-						viewer.dimensions.create();
-				}
-				if (event.code === 'KeyG') {
-						viewer.clipper.createPlane();
-				}
-				if (event.code === 'Delete') {
-						viewer.dimensions.deleteAll();
-						viewer.clipper.deletePlane();
-						viewer.IFC.unpickIfcItems();
-				}
-		};
-		window.onkeydown = handleKeyDown;
-
-		// Highlight items when hovering over them
-		window.onmousemove = viewer.IFC.prePickIfcItem;
-
-		// Select items and log properties
-		window.ondblclick = async () => {
-				const item = await viewer.IFC.pickIfcItem(true);
-				if(item.modelID === undefined || item.id === undefined ) return;
-				console.log(
-						await viewer.IFC.getProperties(item.modelID, item.id, true));
-		}
+					self.onLoaded()
+				},
+				false
+			);
 	}
 }
 </script>
+
+<style>
+#upload {
+	z-index: 100;
+}
+</style>

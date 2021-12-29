@@ -46,6 +46,7 @@
 				:editable="independientes"
 				:title="'Valor Unitario'"
 				:field="'vu'"
+				:format="'{0:c}'"
 			></treelist-column>
 
 			<treelist-column
@@ -144,6 +145,8 @@ export default {
 				id: Date.now(),
 				tipo: tipo,
 				precio: 0,
+				vu: (tipo === "Mano" || tipo === "Material") ? 0 : null,
+				cantidad: 1,
 				parentId: null,
 				nombre: tipo});
 
