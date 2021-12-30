@@ -1,6 +1,6 @@
 {
   "name": "dataobra",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "scripts": {
     "start": "vue-cli-service serve",
@@ -45,8 +45,7 @@
     "three-mesh-bvh": "^0.5.2",
     "vue": "^3.0.0",
     "vuex": "^4.0.2",
-    "web-ifc-three": "^0.0.90",
-    "web-ifc-viewer": "^1.0.106"
+    "web-ifc-three": "^0.0.90"
   },
   "devDependencies": {
     "@vue/cli-plugin-babel": "~4.5.0",
