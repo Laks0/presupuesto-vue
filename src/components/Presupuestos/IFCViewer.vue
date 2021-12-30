@@ -9,8 +9,7 @@
 					@add="agregarArchivo"
 					/-->
 
-	<input type="file" id="file-input" />
-	<canvas id="model"/>
+	<canvas id="model" />
 
 </template>
 
@@ -62,6 +61,10 @@ export default {
 		},
 
 		// Métodos del viewer
+		iniciar: function() {
+			this.IFCManager = new IfcManager("model");
+		},
+
 		onLoaded: function() {
 			this.addPicking();
 			this.setupPick(this);
@@ -104,8 +107,6 @@ export default {
 	},
 
 	mounted() {
-		this.IFCManager = new IfcManager("model");
-
 		const self = this;
 		let input = document.getElementById("file-input");
 
@@ -113,7 +114,10 @@ export default {
 				'change',
 				async function(changed) {
 					let file = changed.target.files[0]
-					console.log(file);
+					self.archivo = file;
+
+					self.iniciar();
+
 					let ifcURL = URL.createObjectURL(file)
 					self.IFCManager.scene.ifcModel = await self.IFCManager.ifcLoader.loadAsync(ifcURL);
 					self.IFCManager.scene.add(self.IFCManager.scene.ifcModel.mesh)
