@@ -11,17 +11,6 @@
 					@click="nuevoConcepto('Tarea')">
 				Nueva Tarea
 			</k-button>
-			<k-button
-					:primary="true"
-					@click="nuevoConcepto('Mano')">
-				Nueva Mano de Obra
-			</k-button>
-			<k-button
-					:primary="true"
-					@click="nuevoConcepto('Material')">
-				Nuevo Material
-			</k-button>
-
 		</div>
 
 		<treelistdatasource
@@ -38,6 +27,8 @@
 			@save="onSave"
 			height="70vh"
 			:style="{lineHeight: '.5'}"
+			id="tree"
+			ref="tree"
 		>
 
 			<treelist-column :field="'nombre'" :title="'Nombre'"></treelist-column>
@@ -62,6 +53,16 @@
 				:format="'{0:c}'"
 			></treelist-column>
 		</treelist>
+
+		<k-contextmenu :target="'#tree'" :filter="'tbody > tr[aria-expanded]'" @open="contextMenuOpen">
+			<li @click="crearHijo('Mano')">Nueva Mano de Obra</li>
+			<li @click="crearHijo('Material')">Nuevo Material</li>
+			<li @click="borrarConcepto">Borrar</li>
+		</k-contextmenu>
+
+		<k-contextmenu :target="'#tree'" :filter="'tbody > tr'" @open="contextMenuOpen">
+			<li @click="borrarConcepto">Borrar</li>
+		</k-contextmenu>
 	</div>
 </template>
 
@@ -70,6 +71,7 @@ import http from "../../http-common.js";
 import { TreeList, TreeListColumn } from "@progress/kendo-treelist-vue-wrapper";
 import { TreeListDataSource } from "@progress/kendo-datasource-vue-wrapper";
 import { Button } from "@progress/kendo-vue-buttons";
+import { ContextMenu } from "@progress/kendo-layout-vue-wrapper"
 
 export default {
 	name: "Presupuesto",
@@ -78,6 +80,7 @@ export default {
 		"treelist-column": TreeListColumn,
 		"treelistdatasource": TreeListDataSource,
 		"k-button": Button,
+		"k-contextmenu": ContextMenu,
 	},
 
 	props: {
@@ -120,6 +123,7 @@ export default {
 
 	data: function() {
 		return {
+			seleccionado: null, // Guarda el concepto seleccionado cuando se hace click derecho
 			model: {
 				id: "id",
 				parentId: "parentId",
@@ -139,7 +143,32 @@ export default {
 	},
 
 	methods: {
-		nuevoConcepto: function(tipo) {
+		contextMenuOpen: function(ev) {
+			const tl = this.$refs["tree"].kendoWidget();
+			let dataItem = tl.dataItem(ev.target);
+
+			this.seleccionado = dataItem;
+		},
+
+		borrarConcepto: function() {
+			const parentId = this.seleccionado.parentId;
+			// Array nuevo con el seleccionado filtrado
+			let data = this.localData.filter(concepto => concepto.id != this.seleccionado.id);
+			this.localData = data;
+
+			if (parentId == null) {
+				return
+			}
+			this.calcularPrecio(parentId);
+		},
+
+		crearHijo: function(tipo) {
+			const id = this.seleccionado.id;
+
+			this.nuevoConcepto(tipo, id);
+		},
+
+		nuevoConcepto: function(tipo, parent) {
 			const nuevaData = [...this.localData];
 			nuevaData.unshift({
 				id: Date.now(),
@@ -147,7 +176,7 @@ export default {
 				precio: 0,
 				vu: (tipo === "Mano" || tipo === "Material") ? 0 : null,
 				cantidad: 1,
-				parentId: null,
+				parentId: parent || null,
 				nombre: tipo});
 
 			this.localData = nuevaData;
