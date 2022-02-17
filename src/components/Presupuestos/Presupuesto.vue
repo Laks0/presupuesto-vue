@@ -278,4 +278,7 @@ export default {
 .botones > * {
 	margin: 5px;
 }
+tr[aria-expanded] > td {
+	background-color: darkgray !important;
+}
 </style>
