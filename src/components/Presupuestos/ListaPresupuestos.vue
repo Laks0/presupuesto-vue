@@ -41,12 +41,24 @@
 				:cerrar="cerrarEditor"
 				:key="presupuestoSeleccionado"/>
 
-		<k-button :style="{ marginBottom: '10px' }" :primary="true" @click="togglePresupuestoDialogo">Nuevo presupuesto</k-button>
+		<buttongroup :style="{marginBottom: '10px'}">
+			<!-- Botón de eliminar -->
+			<k-button :icon="'trash'" :primary="true" :disabled="seleccionVacia" @click="borrarConceptosSeleccionados">
+			</k-button>
+
+			<!-- Botón de crear conceptos -->
+			<k-button :icon="'plus'" :primary="true" @click="togglePresupuestoDialogo">
+			</k-button>
+		</buttongroup>
 
 		<grid
+				ref="lista"
 				:data-items="gridData"
 				:columns="columns"
-				@rowclick="onRowClick">
+				:selected-field="campoSeleccion"
+				@rowdblclick="onRowClick"
+				@selectionchange="onSelectionChange"
+				@headerselectionchange="onHeaderSelectionChange">
 		</grid>
 	</div>
 </template>
@@ -54,7 +66,7 @@
 <script>
 import { Window } from "@progress/kendo-vue-dialogs"
 import { Grid } from "@progress/kendo-vue-grid";
-import { Button } from "@progress/kendo-vue-buttons";
+import { Button, ButtonGroup } from "@progress/kendo-vue-buttons";
 import http from "../../http-common.js";
 import EditorPresupuesto from "./EditorPresupuesto.vue";
 
@@ -62,6 +74,7 @@ export default {
 	components: {
 		grid: Grid,
 		"k-button": Button,
+		"buttongroup": ButtonGroup,
 		window: Window,
 		EditorPresupuesto: EditorPresupuesto,
 	},
@@ -78,7 +91,7 @@ export default {
 
 	data: function () {
 		return {
-			columns: [
+			columnasEstaticas: [
 				{ field: "nombre", title: "Nombre" },
 				{ field: "total", format: "{0:c}", title: "Precio Total" },
 			],
@@ -87,7 +100,24 @@ export default {
 			presupuestoSeleccionado: {},
 			nuevoNombre: "",
 			editando: false,
+			campoSeleccion: "seleccionar"
 		};
+	},
+
+	computed: {
+		seleccionVacia() {
+			return this.gridData.findIndex(item => item.seleccionar === true) === -1;
+		},
+
+		seleccionLlena() {
+			return this.gridData.findIndex(item => item.seleccionar === false) === -1;
+		},
+
+		columns() {
+			return [
+				{field: this.campoSeleccion, width: '40px', headerSelectionValue: this.seleccionLlena},
+				...this.columnasEstaticas];
+		},
 	},
 
 	methods: {
@@ -110,11 +140,38 @@ export default {
 				.catch(err => console.error(err));
 		},
 
+		// Cuando se cambia la selección de un presupuesto, lo cambia en la data local
+		onSelectionChange: function(ev) {
+			ev.dataItem[this.campoSeleccion] = !ev.dataItem[this.campoSeleccion];
+		},
+
+		onHeaderSelectionChange: function(ev) {
+			let checked   = ev.event.target.checked;
+			this.gridData = this.gridData.map(item => {return {...item, seleccionar: checked}});
+		},
+
 		onRowClick: function(ev) {
 			if (!this.editando) {
 				this.presupuestoSeleccionado = ev.dataItem;
 				this.toggleEditando();
 			}
+		},
+
+		borrarConceptosSeleccionados: function() {
+			this.gridData.forEach(item => {
+				if (item.seleccionar) {
+					// Esta es una forma muy lenta de eliminar todos los presupuestos de la base de datos
+					// En escalas muy grandes puede generar problemas
+					// TODO agregar la capacidad de eliminar múltiples presupuestos al mismo tiempo en la API sin tener que llamarla más de una vez
+					http.delete(`/presupuesto/${item.p_id}`)
+						.then(() => {
+							// Lo elimina localmente después de eliminarlo de la base de datos
+							this.gridData = this.gridData.filter(presupuesto => presupuesto.p_id != item.p_id);
+						})
+						.catch(err => console.error(err));
+				}
+			});
+
 		},
 
 		toggleEditando: function() {
