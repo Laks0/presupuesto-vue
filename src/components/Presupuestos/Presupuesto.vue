@@ -203,7 +203,9 @@ export default {
 			this.localData = data;
 
 			// Por ahí no es la forma más eficiente de recalcular los precios, pero funciona
-			this.calcularPrecio(parentViejo);
+			if (parentViejo != null) {
+				this.calcularPrecio(parentViejo);
+			}
 			this.calcularPrecio(cambiado.parentId);
 		},
 
