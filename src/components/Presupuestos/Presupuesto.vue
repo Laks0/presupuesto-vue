@@ -139,6 +139,7 @@ export default {
 			},
 
 			localData: [],
+			staticData: {},
 		};
 	},
 
@@ -169,17 +170,37 @@ export default {
 		},
 
 		nuevoConcepto: function(tipo, parent) {
+			const date          = Date.now();
+			const independiente = tipo === "Mano" || tipo === "Material";
+
 			const nuevaData = [...this.localData];
 			nuevaData.unshift({
-				id: Date.now(),
+				id: date, // ID única del concepto local
+				staticId: independiente ? date : null, // ID del concepto estático (igual a la local)
 				tipo: tipo,
 				precio: 0,
-				vu: (tipo === "Mano" || tipo === "Material") ? 0 : null,
+				vu: independiente ? 0 : null,
 				cantidad: 1,
 				parentId: parent || null,
-				nombre: tipo});
-
+				nombre: tipo,
+			});
 			this.localData = nuevaData;
+
+			if (!independiente)
+				return
+
+			// Cuando se crea un concepto independiente nuevo, automáticamente se crea también un estático
+			const nuevoEstatico = {
+				nombre: tipo,
+				vu: 0,
+				tipo: tipo,
+			};
+
+			this.staticData[date] = nuevoEstatico;
+		},
+
+		actualizarConceptoEstatico: function(id, key, valor) {
+			this.staticData[id][key] = valor;
 		},
 
 		// Encuentra un concepto por id
@@ -245,12 +266,14 @@ export default {
 
 		// editar
 		onSave: function (ev) {
+			console.log(this.staticData);
 			// Variable verifica si el precio se cambió para poder calcular el del padre
 			let cambioPrecio = false;
+			const keyCambiada = Object.keys(ev.values)[0];
+
 			const data = [...this.localData];
 			data.forEach((concepto) => {
 				if (concepto.id === ev.model.id) {
-					const keyCambiada = Object.keys(ev.values)[0];
 					concepto[keyCambiada] = ev.values[keyCambiada];
 
 					if (keyCambiada === "vu" || keyCambiada === "cantidad") {
@@ -267,6 +290,12 @@ export default {
 			if (cambioPrecio) {
 				this.calcularPrecio(ev.model.parentId);
 			}
+
+
+			if (!keyCambiada === "vu" && !keyCambiada === "nombre" && !ev.model.staticId)
+				return
+
+			this.actualizarConceptoEstatico(ev.model.staticId, keyCambiada, ev.values[keyCambiada]);
 		},
 
 		getTree: function() {
@@ -281,6 +310,6 @@ export default {
 	margin: 5px;
 }
 tr[aria-expanded] > td {
-	background-color: darkgray !important;
+	background-color: lightblue !important;
 }
 </style>
