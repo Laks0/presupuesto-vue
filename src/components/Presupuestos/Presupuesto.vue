@@ -55,6 +55,7 @@
 		</treelist>
 
 		<k-contextmenu :target="'#tree'" :filter="'tbody > tr[aria-expanded]'" @open="contextMenuOpen">
+			<li @click="toggleRepetirDialogo">Repetir Concepto</li>
 			<li @click="crearHijo('Mano')">Nueva Mano de Obra</li>
 			<li @click="crearHijo('Material')">Nuevo Material</li>
 			<li @click="borrarConcepto">Borrar</li>
@@ -63,6 +64,15 @@
 		<k-contextmenu :target="'#tree'" :filter="'tbody > tr'" @open="contextMenuOpen">
 			<li @click="borrarConcepto">Borrar</li>
 		</k-contextmenu>
+
+		<repetir-dialogo
+				:abierto="repetirDialogoAbierto"
+				:conceptos="staticData"
+				:toggle="toggleRepetirDialogo"
+				:elegirConcepto="repetirConcepto"
+				:parent="seleccionado"
+				>
+		</repetir-dialogo>
 	</div>
 </template>
 
@@ -72,6 +82,7 @@ import { TreeList, TreeListColumn } from "@progress/kendo-treelist-vue-wrapper";
 import { TreeListDataSource } from "@progress/kendo-datasource-vue-wrapper";
 import { Button } from "@progress/kendo-vue-buttons";
 import { ContextMenu } from "@progress/kendo-layout-vue-wrapper"
+import RepetirDialogo from "./Dialogos/RepetirConceptoDialogo.vue";
 
 export default {
 	name: "Presupuesto",
@@ -81,6 +92,7 @@ export default {
 		"treelistdatasource": TreeListDataSource,
 		"k-button": Button,
 		"k-contextmenu": ContextMenu,
+		"repetir-dialogo": RepetirDialogo,
 	},
 
 	props: {
@@ -140,10 +152,17 @@ export default {
 
 			localData: [],
 			staticData: {},
+
+			repetirDialogoAbierto: false,
 		};
 	},
 
 	methods: {
+		toggleRepetirDialogo: function() {
+			this.repetirDialogoAbierto = !this.repetirDialogoAbierto;
+		},
+
+
 		contextMenuOpen: function(ev) {
 			const tl = this.$refs["tree"].kendoWidget();
 			let dataItem = tl.dataItem(ev.target);
@@ -173,8 +192,7 @@ export default {
 			const date          = Date.now();
 			const independiente = tipo === "Mano" || tipo === "Material";
 
-			const nuevaData = [...this.localData];
-			nuevaData.unshift({
+			const conceptoAgregado = {
 				id: date, // ID única del concepto local
 				staticId: independiente ? date : null, // ID del concepto estático (igual a la local)
 				tipo: tipo,
@@ -183,20 +201,30 @@ export default {
 				cantidad: 1,
 				parentId: parent || null,
 				nombre: tipo,
-			});
+			};
+
+			const nuevaData = [...this.localData];
+			nuevaData.unshift(conceptoAgregado);
+
 			this.localData = nuevaData;
 
 			if (!independiente)
 				return
 
 			// Cuando se crea un concepto independiente nuevo, automáticamente se crea también un estático
-			const nuevoEstatico = {
-				nombre: tipo,
-				vu: 0,
-				tipo: tipo,
-			};
+			this.staticData[date] = {...conceptoAgregado};
+		},
 
-			this.staticData[date] = nuevoEstatico;
+		repetirConcepto: function(id, parent) {
+			const date = Date.now();
+
+			const conceptoAgregado = Object.assign({}, this.staticData[id]);
+			conceptoAgregado.id = date;
+			conceptoAgregado.parentId = parent;
+
+			const nuevaData = [...this.localData];
+			nuevaData.unshift(conceptoAgregado);
+			this.localData = nuevaData;
 		},
 
 		actualizarConceptoEstatico: function(id, key, valor) {
@@ -266,12 +294,11 @@ export default {
 
 		// editar
 		onSave: function (ev) {
-			console.log(this.staticData);
 			// Variable verifica si el precio se cambió para poder calcular el del padre
 			let cambioPrecio = false;
 			const keyCambiada = Object.keys(ev.values)[0];
 
-			const data = [...this.localData];
+			let data = [...this.localData];
 			data.forEach((concepto) => {
 				if (concepto.id === ev.model.id) {
 					concepto[keyCambiada] = ev.values[keyCambiada];
@@ -284,22 +311,23 @@ export default {
 					return concepto;
 				}
 			});
-
 			this.localData = data;
 
 			if (cambioPrecio) {
 				this.calcularPrecio(ev.model.parentId);
 			}
 
+			if (keyCambiada === "vu" || keyCambiada === "nombre")
+				this.actualizarConceptoEstatico(ev.model.staticId, keyCambiada, ev.values[keyCambiada]);
 
-			if (!keyCambiada === "vu" && !keyCambiada === "nombre" && !ev.model.staticId)
-				return
-
-			this.actualizarConceptoEstatico(ev.model.staticId, keyCambiada, ev.values[keyCambiada]);
 		},
 
 		getTree: function() {
 			return JSON.stringify(this.localData);
+		},
+
+		onRepetirConceptoClick: function(ev) {
+			console.log(ev);
 		},
 	},
 }
