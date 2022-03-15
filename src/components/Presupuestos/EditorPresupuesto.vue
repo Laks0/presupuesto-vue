@@ -9,9 +9,9 @@
 			:minWidth="800"
 			:initialWidth="800">
 
-		<input type="file" id="file-input" />
+		<input type="file" id="file-input" :style="{ marginBottom: '10px', marginTop: '5px' }"/>
 
-		<loader v-if="cargando" :type="'converging-spinner'"/>
+		<loader v-if="cargando"/>
 		<span v-if="error" class="k-icon k-i-warning" :style="{ fontSize: '32px', color: 'red' }"></span>
 		<span v-if="ok" class="k-icon k-i-check" :style="{ fontSize: '32px', color: 'darkblue' }"></span>
 		<span v-if="ok">Guardado</span>
