@@ -1,5 +1,5 @@
 <template>
-	<k-dialog v-if="abierto" @close="toggle">
+	<k-dialog v-if="abierto" @close="toggle" class="dialogo">
 		<k-grid
 				ref="lista"
 				:columns="columnas"
@@ -71,3 +71,11 @@ export default {
 	},
 }
 </script>
+
+<style>
+.dialogo {
+	width: 50%;
+	margin-left: 25%;
+	margin-right: 25%;
+}
+</style>

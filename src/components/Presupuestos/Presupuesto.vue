@@ -107,6 +107,9 @@ export default {
 		if (this.customData) {
 			this.localData  = JSON.parse(this.customData.tabla);
 			this.staticData = JSON.parse(this.customData.static_data);
+			if (this.staticData === null) {
+				this.staticData = {};
+			}
 		}
 	},
 
@@ -114,7 +117,6 @@ export default {
 		// Autoguardado en la base de datos
 		let tabla = JSON.stringify(this.localData);
 		let static_data = JSON.stringify(this.staticData);
-		console.log(static_data);
 		let p_id = this.customData.p_id;
 
 		this.cargando();
