@@ -105,13 +105,16 @@ export default {
 
 	mounted() {
 		if (this.customData) {
-			this.localData = JSON.parse(this.customData.tabla);
+			this.localData  = JSON.parse(this.customData.tabla);
+			this.staticData = JSON.parse(this.customData.static_data);
 		}
 	},
 
 	updated() {
 		// Autoguardado en la base de datos
 		let tabla = JSON.stringify(this.localData);
+		let static_data = JSON.stringify(this.staticData);
+		console.log(static_data);
 		let p_id = this.customData.p_id;
 
 		this.cargando();
@@ -123,7 +126,7 @@ export default {
 			}
 		});
 
-		http.put("/presupuesto", {tabla, p_id, total})
+		http.put("/presupuesto", {tabla, static_data, p_id, total})
 			.then(() => {
 				this.ok();
 				this.actualizar(total, tabla, p_id);
