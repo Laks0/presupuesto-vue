@@ -162,7 +162,6 @@ export default {
 			this.repetirDialogoAbierto = !this.repetirDialogoAbierto;
 		},
 
-
 		contextMenuOpen: function(ev) {
 			const tl = this.$refs["tree"].kendoWidget();
 			let dataItem = tl.dataItem(ev.target);
@@ -236,7 +235,7 @@ export default {
 				let concepto = data[i];
 
 				if (concepto.staticId != id)
-					return;
+					continue;
 
 				concepto[key] = valor;
 				const targetPrecio = concepto.vu * concepto.cantidad;
@@ -249,7 +248,9 @@ export default {
 
 			this.localData = data;
 
-			actualizar.forEach(id => {this.calcularPrecio(id)});
+			for (let i = 0; i < actualizar.length; i++) {
+				this.calcularPrecio(actualizar[i]);
+			}
 		},
 
 		// Encuentra un concepto por id
@@ -296,7 +297,6 @@ export default {
 
 			data.forEach((concepto) => {
 				if (concepto.parentId === id && concepto.precio != null) {
-					console.log(concepto);
 					precio += concepto.precio;
 				}
 				if (concepto.id === id) {
@@ -346,10 +346,6 @@ export default {
 
 		getTree: function() {
 			return JSON.stringify(this.localData);
-		},
-
-		onRepetirConceptoClick: function(ev) {
-			console.log(ev);
 		},
 	},
 }
