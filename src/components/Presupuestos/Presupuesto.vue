@@ -229,6 +229,27 @@ export default {
 
 		actualizarConceptoEstatico: function(id, key, valor) {
 			this.staticData[id][key] = valor;
+			let actualizar = [];
+
+			let data = [...this.localData];
+			for (let i = 0; i < data.length; i++) {
+				let concepto = data[i];
+
+				if (concepto.staticId != id)
+					return;
+
+				concepto[key] = valor;
+				const targetPrecio = concepto.vu * concepto.cantidad;
+
+				if (concepto.precio != targetPrecio) {
+					concepto.precio = targetPrecio;
+					actualizar.push(concepto.parentId);
+				}
+			}
+
+			this.localData = data;
+
+			actualizar.forEach(id => {this.calcularPrecio(id)});
 		},
 
 		// Encuentra un concepto por id
@@ -275,6 +296,7 @@ export default {
 
 			data.forEach((concepto) => {
 				if (concepto.parentId === id && concepto.precio != null) {
+					console.log(concepto);
 					precio += concepto.precio;
 				}
 				if (concepto.id === id) {
