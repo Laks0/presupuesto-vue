@@ -1,13 +1,5 @@
 <template>
 	<div :style="{height: '100%'}">
-		<div class="botones">
-			<k-button
-					:primary="true"
-					@click="nuevoConcepto('Rubro')">
-				Nuevo Rubro
-			</k-button>
-		</div>
-
 		<treelistdatasource
 				ref="dataSource"
 				:data="localData"
@@ -62,6 +54,10 @@
 			<li @click="borrarConcepto">Borrar</li>
 		</k-contextmenu>
 
+		<k-contextmenu :target="'#tree'">
+			<li @click="nuevoConcepto('Rubro', null)">Nuevo Rubro</li>
+		</k-contextmenu>
+
 		<repetir-dialogo
 				:abierto="repetirDialogoAbierto"
 				:conceptos="staticData"
@@ -77,7 +73,6 @@
 import http from "../../http-common.js";
 import { TreeList, TreeListColumn } from "@progress/kendo-treelist-vue-wrapper";
 import { TreeListDataSource } from "@progress/kendo-datasource-vue-wrapper";
-import { Button } from "@progress/kendo-vue-buttons";
 import { ContextMenu } from "@progress/kendo-layout-vue-wrapper"
 import RepetirDialogo from "./Dialogos/RepetirConceptoDialogo.vue";
 
@@ -87,7 +82,6 @@ export default {
 		"treelist": TreeList,
 		"treelist-column": TreeListColumn,
 		"treelistdatasource": TreeListDataSource,
-		"k-button": Button,
 		"k-contextmenu": ContextMenu,
 		"repetir-dialogo": RepetirDialogo,
 	},
