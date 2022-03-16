@@ -28,7 +28,6 @@
 			></treelist-column>
 
 			<treelist-column
-				:editable="independientes"
 				:field="'cantidad'"
 				:title="'Cantidad'"
 			></treelist-column>
@@ -317,7 +316,8 @@ export default {
 				}
 			});
 
-			aCalcular.precio = precio;
+			aCalcular.vu = precio;
+			aCalcular.precio = precio * aCalcular.cantidad;
 			this.localData = data;
 
 			if (aCalcular.parentId != null) {
