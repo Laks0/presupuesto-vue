@@ -6,11 +6,6 @@
 					@click="nuevoConcepto('Rubro')">
 				Nuevo Rubro
 			</k-button>
-			<k-button
-					:primary="true"
-					@click="nuevoConcepto('Tarea')">
-				Nueva Tarea
-			</k-button>
 		</div>
 
 		<treelistdatasource
@@ -54,7 +49,7 @@
 			></treelist-column>
 		</treelist>
 
-		<k-contextmenu class="menu" :key="seleccionadoRubro" :target="'#tree'" :filter="'tbody > tr'" @open="contextMenuOpen">
+		<k-contextmenu class="menu" :target="'#tree'" :filter="'tbody > tr'" @open="contextMenuOpen" :key="seleccionado">
 			<li v-if="!seleccionadoIndependiente" @click="toggleRepetirDialogo"> Repetir Concepto	</li>
 			<li v-if="!seleccionadoIndependiente">
 				Nuevo
@@ -378,6 +373,9 @@ export default {
 <style>
 .botones > * {
 	margin: 5px;
+}
+.k-group > li {
+	line-height: .7 !important;
 }
 tr[aria-expanded] > td {
 	background-color: lightblue !important;
