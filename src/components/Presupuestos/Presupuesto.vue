@@ -54,14 +54,16 @@
 			></treelist-column>
 		</treelist>
 
-		<k-contextmenu :target="'#tree'" :filter="'tbody > tr[aria-expanded]'" @open="contextMenuOpen">
-			<li @click="toggleRepetirDialogo">Repetir Concepto</li>
-			<li @click="crearHijo('Mano')">Nueva Mano de Obra</li>
-			<li @click="crearHijo('Material')">Nuevo Material</li>
-			<li @click="borrarConcepto">Borrar</li>
-		</k-contextmenu>
-
-		<k-contextmenu :target="'#tree'" :filter="'tbody > tr'" @open="contextMenuOpen">
+		<k-contextmenu class="menu" :key="seleccionadoRubro" :target="'#tree'" :filter="'tbody > tr'" @open="contextMenuOpen">
+			<li v-if="!seleccionadoIndependiente" @click="toggleRepetirDialogo"> Repetir Concepto	</li>
+			<li v-if="!seleccionadoIndependiente">
+				Nuevo
+				<ul>
+					<li v-if="seleccionadoRubro" @click="crearHijo('Tarea')">Tarea</li>
+					<li @click="crearHijo('Mano')"    >Mano de Obra</li>
+					<li @click="crearHijo('Material')">Material		 </li>
+				</ul>
+			</li>
 			<li @click="borrarConcepto">Borrar</li>
 		</k-contextmenu>
 
@@ -111,6 +113,23 @@ export default {
 				this.staticData = {};
 			}
 		}
+	},
+
+	computed: {
+		seleccionadoIndependiente: function() {
+			if (this.seleccionado === null)
+				return false;
+
+			const tipo = this.seleccionado.tipo;
+			return (tipo === "Mano" || tipo === "Material");
+		},
+
+		seleccionadoRubro: function() {
+			if (this.seleccionado === null)
+				return false;
+
+			return this.seleccionado.tipo === "Rubro";
+		},
 	},
 
 	updated() {
