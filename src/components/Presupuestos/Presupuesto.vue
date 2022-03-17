@@ -40,13 +40,13 @@
 			></treelist-column>
 		</treelist>
 
-		<k-contextmenu class="menu" :target="'#tree'" :filter="'tbody > tr'" @open="contextMenuOpen" :key="seleccionado">
+		<k-contextmenu class="menu" :target="'#tree'" :filter="'tbody > tr'" @open="contextMenuOpen">
 			<li v-if="!seleccionadoIndependiente" @click="toggleRepetirDialogo"> Repetir Concepto	</li>
 			<li v-if="!seleccionadoIndependiente">
 				Nuevo
 				<ul>
 					<li v-if="seleccionadoRubro" @click="crearHijo('Tarea')">Tarea</li>
-					<li @click="crearHijo('Mano')"    >Mano de Obra</li>
+					<li @click="crearHijo('Mano')"		>Mano de Obra</li>
 					<li @click="crearHijo('Material')">Material		 </li>
 				</ul>
 			</li>
@@ -373,5 +373,9 @@ export default {
 }
 tr[aria-expanded] > td {
 	background-color: lightblue !important;
+	text-align: right;
+}
+tr[aria-expanded] > td:first-child {
+	text-align: left;
 }
 </style>
