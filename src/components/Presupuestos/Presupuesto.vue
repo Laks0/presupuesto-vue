@@ -40,7 +40,7 @@
 			></treelist-column>
 		</treelist>
 
-		<k-contextmenu class="menu" :target="'#tree'" :filter="'tbody > tr'" @open="contextMenuOpen">
+		<k-contextmenu class="menu" :target="'#tree'" :filter="'tbody > tr'" @open="contextMenuOpen" :key="seleccionado">
 			<li v-if="!seleccionadoIndependiente" @click="toggleRepetirDialogo"> Repetir Concepto	</li>
 			<li v-if="!seleccionadoIndependiente">
 				Nuevo
