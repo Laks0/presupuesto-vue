@@ -40,7 +40,7 @@ export default {
 		handleSubmit (dataItem) {
 			this.cargando = true;
 			// Se llama a Vuex a intentar logear
-			this.$store.dispatch("login", dataItem)
+			this.$store.dispatch("login", dataItem) // El contacto con la API y todo el Login se hace desde Vuex
 				.then(res => res)
 				.catch(err => {
 					this.cargando = false;
