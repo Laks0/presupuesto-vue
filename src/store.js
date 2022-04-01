@@ -5,7 +5,8 @@ const store = createStore({
 	state: {
 		user: {},
 		logged: false,
-		token: ""
+		token: "",
+		active: false,
 	},
 
 	mutations: {
@@ -14,8 +15,12 @@ const store = createStore({
 			state.logged = true;
 			state.token = data.token;
 
-			http.defaults.headers.common["auth-token"] = data.token;
-		}
+			// http.defaults.headers.common["auth-token"] = data.token;
+		},
+
+		active(state, data) {
+			state.active = data;
+		},
 	},
 
 	actions: {
@@ -35,12 +40,33 @@ const store = createStore({
 					});
 			});
 		},
+
+		checkCookie({commit}) {
+			return new Promise((resolve, reject) => {
+				http.get("/logged")
+					.then(res => {
+						console.log(res);
+						commit("active", true);
+						if (!res.data.usuario) {
+							resolve(res);
+							return;
+						}
+
+						commit("login", res.data);
+						resolve(res);
+					})
+					.catch(err => {
+						reject(err);
+					});
+			});
+		}
 	},
 
 	getters: {
 		logged: state => state.logged,
 		user: state => state.user,
 		token: state => state.token,
+		active: state => state.active,
 	},
 })
 

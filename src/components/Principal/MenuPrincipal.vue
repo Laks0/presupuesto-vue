@@ -1,6 +1,6 @@
 <template>
-	<Login v-if="!logged"/>	
-	<ListaPresupuestos v-if="logged" :key="logged"/>
+	<Login v-if="!logged && active"/>
+	<ListaPresupuestos v-if="logged && active" :key="logged"/>
 </template>
 
 <script>
@@ -27,6 +27,14 @@ export default {
 		}
 	},
 
-	computed: mapState(["logged"]),
+	computed: mapState(["logged", "active"]),
+
+	beforeMount: function () {
+		this.$store.dispatch("checkCookie")
+			.then(res => res)
+			.catch(err => {
+				console.error(err);
+			});
+	},
 }
 </script>
