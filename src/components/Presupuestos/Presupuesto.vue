@@ -87,6 +87,7 @@ import RepetirDialogo from "./Dialogos/RepetirConceptoDialogo.vue";
 import { Button, ButtonGroup } from "@progress/kendo-vue-buttons";
 
 const borrarConcepto = require("./AccionesPresupuesto/BorrarConcepto");
+const editarConcepto = require("./AccionesPresupuesto/EditarConcepto");
 
 export default {
 	name: "Presupuesto",
@@ -175,6 +176,8 @@ export default {
 	},
 
 	methods: {
+		//// <FUNCIONES DE HISTORIAL> ////
+		// estaría bueno reemplazarlas por algún log manager
 		loguear: function (log) {
 			if (this.indexHistorial > 0) {
 				this.historial = this.historial.splice(this.indexHistorial);
@@ -191,6 +194,8 @@ export default {
 			this.indexHistorial += 1;
 
 			ultima.aCalcular.forEach(id => this.calcularPrecio(id));
+			if (ultima.estaticoACambiar)
+				this.actualizarConceptoEstatico(ultima.estaticoACambiar, ultima.info.keyCambiada, ultima.info.valorViejo);
 
 			this.guardar();
 		},
@@ -202,9 +207,12 @@ export default {
 
 			this.localData = response.newData;
 			siguiente.aCalcular.forEach(id => this.calcularPrecio(id));
+			if (siguiente.estaticoACambiar)
+				this.actualizarConceptoEstatico(siguiente.estaticoACambiar, siguiente.info.keyCambiada, siguiente.info.value);
 
 			this.indexHistorial -= 1;
 		},
+		//// </FUNCIONES DE HISTORIAL> ////
 
 		guardar: function () {
 			// Autoguardado en la base de datos
@@ -398,32 +406,23 @@ export default {
 
 		// editar
 		onSave: function (ev) {
-			// Variable verifica si el precio se cambió para poder calcular el del padre
-			let cambioPrecio = false;
-			const keyCambiada = Object.keys(ev.values)[0];
+			ev.preventDefault();
 
-			let data = [...this.localData];
-			data.forEach((concepto) => {
-				if (concepto.id === ev.model.id) {
-					concepto[keyCambiada] = ev.values[keyCambiada];
-
-					if (keyCambiada === "vu" || keyCambiada === "cantidad") {
-						concepto.precio = (concepto.vu * concepto.cantidad) || 0;
-						cambioPrecio = true;
-					}
-
-					return concepto;
-				}
+			const key = Object.keys(ev.values)[0];
+			const response = editarConcepto.do(this, {
+				keyCambiada: key,
+				value: ev.values[key],
+				id: ev.model.id,
 			});
-			this.localData = data;
+			const log = response.log;
 
-			if (cambioPrecio) {
-				this.calcularPrecio(ev.model.parentId);
-			}
+			this.localData = response.newData;
+			if (log.estaticoACambiar)
+				this.actualizarConceptoEstatico(log.estaticoACambiar, key, ev.values[key]);
 
-			if (keyCambiada === "vu" || keyCambiada === "nombre")
-				this.actualizarConceptoEstatico(ev.model.staticId, keyCambiada, ev.values[keyCambiada]);
+			this.historial.unshift(response.log);
 
+			this.guardar();
 		},
 
 		getTree: function() {
