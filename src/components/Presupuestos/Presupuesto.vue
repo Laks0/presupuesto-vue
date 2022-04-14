@@ -200,14 +200,23 @@ export default {
 		redo: function () {
 			const siguiente = this.historial[this.indexHistorial - 1];
 
-			const response = siguiente.accion.do(this, siguiente.info);
-
-			this.localData = response.newData;
-			siguiente.aCalcular.forEach(id => this.calcularPrecio(id));
-			if (siguiente.estaticoACambiar)
-				this.actualizarConceptoEstatico(siguiente.estaticoACambiar, siguiente.info.keyCambiada, siguiente.info.value);
+			this.ejecutar(siguiente.accion, siguiente.info);
 
 			this.indexHistorial -= 1;
+		},
+
+		ejecutar: function (accion, info) {
+			const response = accion.do(this, info);
+			const log = response.log;
+
+			this.localData = response.newData;
+			log.aCalcular.forEach(id => this.calcularPrecio(id));
+
+			if (log.estaticoACambiar) {
+				this.actualizarConceptoEstatico(log.estaticoACambiar, log.info.keyCambiada, log.info.value);
+			}
+
+			this.loguear(response.log);
 
 			this.guardar();
 		},
@@ -250,21 +259,7 @@ export default {
 		},
 
 		borrarConcepto: function() {
-			// Ejecuta la acción y guarda la respuesta en response
-			const response = borrarConcepto.do(this, {concepto: this.seleccionado });
-
-			// Actualiza la data
-			this.localData = response.newData;
-
-			// Guarda el log en el historial
-			this.loguear(response.log);
-
-			// Calcula el precio que haya que calcular
-			if (response.log.aCalcular.length === 1)
-				this.calcularPrecio(response.log.aCalcular[0]);
-
-			// Guarda a la base de datos
-			this.guardar();
+			this.ejecutar(borrarConcepto, {concepto: this.seleccionado});
 		},
 
 		crearHijo: function(tipo) {
@@ -353,16 +348,10 @@ export default {
 				return;
 			}
 
-			const response = moverConcepto.do(this, {
+			this.ejecutar(moverConcepto, {
 				id: ev.source.id,
 				destino: ev.destination.id,
 			});
-
-			this.localData = response.newData;
-			response.log.aCalcular.forEach(id => this.calcularPrecio(id));
-			this.loguear(response.log);
-
-			this.guardar();
 		},
 
 		// FUNCIONES BOOLEANAS DE EDITABLES //
@@ -407,20 +396,12 @@ export default {
 			ev.preventDefault();
 
 			const key = Object.keys(ev.values)[0];
-			const response = editarConcepto.do(this, {
+
+			this.ejecutar(editarConcepto, {
 				keyCambiada: key,
 				value: ev.values[key],
 				id: ev.model.id,
 			});
-			const log = response.log;
-
-			this.localData = response.newData;
-			if (log.estaticoACambiar)
-				this.actualizarConceptoEstatico(log.estaticoACambiar, key, ev.values[key]);
-
-			this.loguear(response.log);
-
-			this.guardar();
 		},
 
 		getTree: function() {
