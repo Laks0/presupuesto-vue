@@ -1,5 +1,15 @@
 <template>
 	<div :style="{height: '100%'}">
+		<k-button-group>
+			<k-button :disabled="!undo_enable" @click="undo">
+				<span class="k-icon k-i-undo"/>
+			</k-button>
+
+			<k-button :disabled="!redo_enable" @click="redo">
+				<span class="k-icon k-i-redo"/>
+			</k-button>
+		</k-button-group>
+
 		<treelistdatasource
 				ref="dataSource"
 				:data="localData"
@@ -74,6 +84,9 @@ import { TreeList, TreeListColumn } from "@progress/kendo-treelist-vue-wrapper";
 import { TreeListDataSource } from "@progress/kendo-datasource-vue-wrapper";
 import { ContextMenu } from "@progress/kendo-layout-vue-wrapper"
 import RepetirDialogo from "./Dialogos/RepetirConceptoDialogo.vue";
+import { Button, ButtonGroup } from "@progress/kendo-vue-buttons";
+
+const borrarConcepto = require("./AccionesPresupuesto/BorrarConcepto");
 
 export default {
 	name: "Presupuesto",
@@ -83,6 +96,8 @@ export default {
 		"treelistdatasource": TreeListDataSource,
 		"k-contextmenu": ContextMenu,
 		"repetir-dialogo": RepetirDialogo,
+		"k-button": Button,
+		"k-button-group": ButtonGroup,
 	},
 
 	props: {
@@ -118,32 +133,19 @@ export default {
 
 			return this.seleccionado.tipo === "Rubro";
 		},
+
+		undo_enable: function() {
+			return this.historial.length - this.indexHistorial > 0;
+		},
+
+		redo_enable: function() {
+			return this.indexHistorial > 0;
+		},
 	},
 
-	updated() {
-		// Autoguardado en la base de datos
-		let tabla = JSON.stringify(this.localData);
-		let static_data = JSON.stringify(this.staticData);
-		let p_id = this.customData.p_id;
-
-		this.cargando();
-
-		let total = 0
-		this.localData.forEach(concepto => {
-			if (concepto.parentId === null) {
-				total += concepto.precio;
-			}
-		});
-
-		http.put("/presupuesto", {tabla, static_data, p_id, total})
-			.then(() => {
-				this.ok();
-				this.actualizar(total, tabla, p_id);
-			})
-			.catch(() => {
-				this.error();
-			});
-	},
+//	updated() {
+//		this.guardar();
+//	},
 
 	data: function() {
 		return {
@@ -166,10 +168,69 @@ export default {
 			staticData: {},
 
 			repetirDialogoAbierto: false,
+
+			historial: [],
+			indexHistorial: 0,
 		};
 	},
 
 	methods: {
+		loguear: function (log) {
+			if (this.indexHistorial > 0) {
+				this.historial = this.historial.splice(this.indexHistorial);
+				this.indexHistorial = 0;
+			}
+
+			this.historial.unshift(log);
+		},
+
+		undo: function () {
+			const ultima = this.historial[this.indexHistorial];
+
+			this.localData = ultima.accion.undo(this, ultima);
+			this.indexHistorial += 1;
+
+			ultima.aCalcular.forEach(id => this.calcularPrecio(id));
+
+			this.guardar();
+		},
+
+		redo: function () {
+			const siguiente = this.historial[this.indexHistorial - 1];
+
+			const response = siguiente.accion.do(this, siguiente.info);
+
+			this.localData = response.newData;
+			siguiente.aCalcular.forEach(id => this.calcularPrecio(id));
+
+			this.indexHistorial -= 1;
+		},
+
+		guardar: function () {
+			// Autoguardado en la base de datos
+			let tabla = JSON.stringify(this.localData);
+			let static_data = JSON.stringify(this.staticData);
+			let p_id = this.customData.p_id;
+
+			this.cargando();
+
+			let total = 0
+			this.localData.forEach(concepto => {
+				if (concepto.parentId === null) {
+					total += concepto.precio;
+				}
+			});
+
+			http.put("/presupuesto", {tabla, static_data, p_id, total})
+				.then(() => {
+					this.ok();
+					this.actualizar(total, tabla, p_id);
+				})
+				.catch(() => {
+					this.error();
+				});
+		},
+
 		toggleRepetirDialogo: function() {
 			this.repetirDialogoAbierto = !this.repetirDialogoAbierto;
 		},
@@ -182,15 +243,21 @@ export default {
 		},
 
 		borrarConcepto: function() {
-			const parentId = this.seleccionado.parentId;
-			// Array nuevo con el seleccionado filtrado
-			let data = this.localData.filter(concepto => concepto.id != this.seleccionado.id);
-			this.localData = data;
+			// Ejecuta la acción y guarda la respuesta en response
+			const response = borrarConcepto.do(this, {concepto: this.seleccionado });
 
-			if (parentId == null) {
-				return
-			}
-			this.calcularPrecio(parentId);
+			// Actualiza la data
+			this.localData = response.newData;
+
+			// Guarda el log en el historial
+			this.loguear(response.log);
+
+			// Calcula el precio que haya que calcular
+			if (response.log.aCalcular.length === 1)
+				this.calcularPrecio(response.log.aCalcular[0]);
+
+			// Guarda a la base de datos
+			this.guardar();
 		},
 
 		crearHijo: function(tipo) {
@@ -315,6 +382,8 @@ export default {
 					aCalcular = concepto;
 				}
 			});
+
+			if (!aCalcular) return
 
 			aCalcular.vu = precio;
 			aCalcular.precio = precio * aCalcular.cantidad;
