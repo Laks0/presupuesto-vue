@@ -88,6 +88,7 @@ import { Button, ButtonGroup } from "@progress/kendo-vue-buttons";
 
 const borrarConcepto = require("./AccionesPresupuesto/BorrarConcepto");
 const editarConcepto = require("./AccionesPresupuesto/EditarConcepto");
+const moverConcepto  = require("./AccionesPresupuesto/MoverConcepto");
 
 export default {
 	name: "Presupuesto",
@@ -207,6 +208,8 @@ export default {
 				this.actualizarConceptoEstatico(siguiente.estaticoACambiar, siguiente.info.keyCambiada, siguiente.info.value);
 
 			this.indexHistorial -= 1;
+
+			this.guardar();
 		},
 		//// </FUNCIONES DE HISTORIAL> ////
 
@@ -350,17 +353,16 @@ export default {
 				return;
 			}
 
-			const data = [...this.localData];
-			let cambiado = data.find(concepto => concepto.id === ev.source.id);
-			let parentViejo = cambiado.parentId;
-			cambiado.parentId = ev.destination.id;
-			this.localData = data;
+			const response = moverConcepto.do(this, {
+				id: ev.source.id,
+				destino: ev.destination.id,
+			});
 
-			// Por ahí no es la forma más eficiente de recalcular los precios, pero funciona
-			if (parentViejo != null) {
-				this.calcularPrecio(parentViejo);
-			}
-			this.calcularPrecio(cambiado.parentId);
+			this.localData = response.newData;
+			response.log.aCalcular.forEach(id => this.calcularPrecio(id));
+			this.loguear(response.log);
+
+			this.guardar();
 		},
 
 		// FUNCIONES BOOLEANAS DE EDITABLES //
