@@ -144,10 +144,6 @@ export default {
 		},
 	},
 
-//	updated() {
-//		this.guardar();
-//	},
-
 	data: function() {
 		return {
 			seleccionado: null, // Guarda el concepto seleccionado cuando se hace click derecho
@@ -420,7 +416,7 @@ export default {
 			if (log.estaticoACambiar)
 				this.actualizarConceptoEstatico(log.estaticoACambiar, key, ev.values[key]);
 
-			this.historial.unshift(response.log);
+			this.loguear(response.log);
 
 			this.guardar();
 		},
