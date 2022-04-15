@@ -89,6 +89,7 @@ import { Button, ButtonGroup } from "@progress/kendo-vue-buttons";
 const borrarConcepto = require("./AccionesPresupuesto/BorrarConcepto");
 const editarConcepto = require("./AccionesPresupuesto/EditarConcepto");
 const moverConcepto  = require("./AccionesPresupuesto/MoverConcepto");
+const nuevoConcepto  = require("./AccionesPresupuesto/NuevoConcepto");
 
 export default {
 	name: "Presupuesto",
@@ -193,6 +194,9 @@ export default {
 			ultima.aCalcular.forEach(id => this.calcularPrecio(id));
 			if (ultima.estaticoACambiar)
 				this.actualizarConceptoEstatico(ultima.estaticoACambiar, ultima.info.keyCambiada, ultima.info.valorViejo);
+			if (ultima.agregarEstatico) {
+				delete this.staticData[ultima.agregarEstatico.id];
+			}
 
 			this.guardar();
 		},
@@ -216,6 +220,10 @@ export default {
 				this.actualizarConceptoEstatico(log.estaticoACambiar, log.info.keyCambiada, log.info.value);
 			}
 
+			if (log.agregarEstatico) {
+				this.staticData[log.agregarEstatico.id] = log.agregarEstatico;
+			}
+
 			this.loguear(response.log);
 
 			this.guardar();
@@ -224,9 +232,9 @@ export default {
 
 		guardar: function () {
 			// Autoguardado en la base de datos
-			let tabla = JSON.stringify(this.localData);
-			let static_data = JSON.stringify(this.staticData);
-			let p_id = this.customData.p_id;
+			const tabla = JSON.stringify(this.localData);
+			const static_data = JSON.stringify(this.staticData);
+			const p_id = this.customData.p_id;
 
 			this.cargando();
 
@@ -268,43 +276,20 @@ export default {
 			this.nuevoConcepto(tipo, id);
 		},
 
-		nuevoConcepto: function(tipo, parent) {
-			const date          = Date.now();
-			const independiente = tipo === "Mano" || tipo === "Material";
-
-			const conceptoAgregado = {
-				id: date, // ID única del concepto local
-				staticId: independiente ? date : null, // ID del concepto estático (igual a la local)
-				tipo: tipo,
-				precio: 0,
-				vu: independiente ? 0 : null,
-				cantidad: 1,
-				parentId: parent || null,
-				nombre: tipo,
-			};
-
-			const nuevaData = [...this.localData];
-			nuevaData.unshift(conceptoAgregado);
-
-			this.localData = nuevaData;
-
-			if (!independiente)
-				return
-
-			// Cuando se crea un concepto independiente nuevo, automáticamente se crea también un estático
-			this.staticData[date] = {...conceptoAgregado};
+		nuevoConcepto: function(tipo, parentId) {
+			this.ejecutar(nuevoConcepto, {
+				tipo,
+				parentId,
+				repetido: false
+			});
 		},
 
-		repetirConcepto: function(id, parent) {
-			const date = Date.now();
-
-			const conceptoAgregado = Object.assign({}, this.staticData[id]);
-			conceptoAgregado.id = date;
-			conceptoAgregado.parentId = parent;
-
-			const nuevaData = [...this.localData];
-			nuevaData.unshift(conceptoAgregado);
-			this.localData = nuevaData;
+		repetirConcepto: function(staticId, parentId) {
+			this.ejecutar(nuevoConcepto, {
+				staticId,
+				parentId,
+				repetido: true,
+			});
 		},
 
 		actualizarConceptoEstatico: function(id, key, valor) {

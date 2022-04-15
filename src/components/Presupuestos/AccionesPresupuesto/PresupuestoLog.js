@@ -2,6 +2,7 @@ class PresupuestoLog {
 	accion;
 	aCalcular = [];
 	estaticoACambiar;
+	agregarEstatico;
 	info = {};
 
 	constructor(accion) {
