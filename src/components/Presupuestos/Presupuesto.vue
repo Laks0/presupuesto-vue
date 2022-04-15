@@ -204,7 +204,15 @@ export default {
 		redo: function () {
 			const siguiente = this.historial[this.indexHistorial - 1];
 
-			this.ejecutar(siguiente.accion, siguiente.info);
+			const response = siguiente.accion.do(this, siguiente.info);
+
+			this.localData = response.newData;
+			siguiente.aCalcular.forEach(id => this.calcularPrecio(id));
+			if (siguiente.estaticoACambiar)
+				this.actualizarConceptoEstatico(siguiente.estaticoACambiar, siguiente.info.keyCambiada, siguiente.info.value);
+			if (siguiente.agregarEstatico) {
+				this.staticData.unshift(siguiente.agregarEstatico);
+			}
 
 			this.indexHistorial -= 1;
 		},
@@ -224,7 +232,10 @@ export default {
 				this.staticData[log.agregarEstatico.id] = log.agregarEstatico;
 			}
 
-			this.loguear(response.log);
+			if (!response.log.logueado) {
+				this.loguear(response.log);
+				response.log.logueado = true;
+			}
 
 			this.guardar();
 		},
