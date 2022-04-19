@@ -194,9 +194,9 @@ export default {
 			ultima.aCalcular.forEach(id => this.calcularPrecio(id));
 			if (ultima.estaticoACambiar)
 				this.actualizarConceptoEstatico(ultima.estaticoACambiar, ultima.info.keyCambiada, ultima.info.valorViejo);
-			if (ultima.agregarEstatico) {
-				delete this.staticData[ultima.agregarEstatico.id];
-			}
+			//if (ultima.agregarEstatico) {
+			//	delete this.staticData[ultima.agregarEstatico.id];
+			//}
 
 			this.guardar();
 		},
@@ -211,7 +211,7 @@ export default {
 			if (siguiente.estaticoACambiar)
 				this.actualizarConceptoEstatico(siguiente.estaticoACambiar, siguiente.info.keyCambiada, siguiente.info.value);
 			if (siguiente.agregarEstatico) {
-				this.staticData.unshift(siguiente.agregarEstatico);
+				this.staticData[siguiente.agregarEstatico.id] = siguiente.agregarEstatico;
 			}
 
 			this.indexHistorial -= 1;
