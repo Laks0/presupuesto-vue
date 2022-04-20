@@ -1,14 +1,6 @@
 <template>
-	<window
-			@close="cerrar(total, tabla, p_id)"
-			:title="presupuesto.nombre"
-			:stage="windowStage"
-			@stagechange="stagechange"
-			:minHeight="700"
-			:initialHeight="700"
-			:minWidth="800"
-			:initialWidth="800">
-
+	<div class="main-div">
+		<k-button class="back" @click="goHome"><span class="k-icon k-i-arrow-left"></span></k-button>
 		<input type="file" id="file-input" :style="{ marginBottom: '10px', marginTop: '5px' }"/>
 
 		<loader v-if="cargando"/>
@@ -16,9 +8,8 @@
 		<span v-if="ok" class="k-icon k-i-check" :style="{ fontSize: '32px', color: 'darkblue' }"></span>
 		<span v-if="ok">Guardado</span>
 
-		<splitter class="splitter" :orientation="'horizontal'">
+		<splitter class="splitter" :orientation="'horizontal'" :key="presupuesto">
 			<arbol
-				:actualizar="actualizar"
 				:ok="setOk"
 				:error="setError"
 				:cargando="setCargando"
@@ -26,28 +17,24 @@
 
 			<IFCViewer/>
 		</splitter>
-	</window>
+	</div>
 </template>
 
 <script>
-import { Window } from "@progress/kendo-vue-dialogs";
 import { Splitter } from "@progress/kendo-layout-vue-wrapper";
 import { Loader } from "@progress/kendo-vue-indicators";
+import { Button } from "@progress/kendo-vue-buttons";
 import Presupuesto from "./Presupuesto.vue";
 import IFCViewer from "./IFCViewer.vue";
+import http from "../../http-common.js";
 
 export default {
 	components: {
-		window: Window,
 		arbol: Presupuesto,
 		IFCViewer: IFCViewer,
 		splitter: Splitter,
 		loader: Loader,
-	},
-
-	props: {
-		presupuesto: Object,
-		cerrar: Function,
+		"k-button": Button,
 	},
 
 	data: function() {
@@ -55,22 +42,25 @@ export default {
 			cargando: false,
 			error: false,
 			ok: false,
-			tabla: [],
-			total: 0,
-			p_id: 0,
-			windowStage: "FULLSCREEN"
+			presupuesto: null,
 		};
+	},
+
+	created: function() {
+		http.get(`/presupuesto/presid/${this.$route.params.pid}`)
+			.then(res => {
+				this.presupuesto = res.data[0];
+				this.$route.name = res.data[0].nombre;
+			})
+			.catch(err => {
+				// TODO feedback de los errores
+				console.error(err);
+			});
 	},
 
 	methods: {
 		stagechange(ev) {
 			this.windowStage = ev.state;
-		},
-
-		actualizar(total, tabla, p_id) {
-			this.tabla = tabla;
-			this.total = total;
-			this.p_id = p_id;
 		},
 		setError() {
 			this.cargando = false;
@@ -87,13 +77,21 @@ export default {
 			this.error = false;
 			this.ok = true;
 		},
+		goHome() {
+			this.$router.push("/");
+		},
 	},
 }
 </script>
 
 <style>
 .splitter {
-	height: 95%;
-	width: 98%;
+	height: 100%;
+}
+.main-div {
+	height: 95vh;
+}
+.back {
+	margin-right: 5px;
 }
 </style>

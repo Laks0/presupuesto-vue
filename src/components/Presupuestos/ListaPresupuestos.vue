@@ -8,12 +8,6 @@
 				:toggle="togglePresupuestoDialogo"
 			/>
 
-		<EditorPresupuesto
-				:presupuesto="presupuestoSeleccionado"
-				v-if="editando"
-				:cerrar="cerrarEditor"
-				:key="presupuestoSeleccionado"/>
-
 		<buttongroup :style="{marginBottom: '10px'}">
 			<!-- Botón de eliminar -->
 			<k-button :icon="'trash'" :primary="true" :disabled="seleccionVacia" @click="borrarConceptosSeleccionados">
@@ -40,7 +34,6 @@
 import { Grid } from "@progress/kendo-vue-grid";
 import { Button, ButtonGroup } from "@progress/kendo-vue-buttons";
 import http from "../../http-common.js";
-import EditorPresupuesto from "./EditorPresupuesto.vue";
 import NuevoPresupuestoDialogo from "./Dialogos/NuevoPresupuestoDialogo.vue";
 
 export default {
@@ -48,13 +41,12 @@ export default {
 		grid: Grid,
 		"k-button": Button,
 		"buttongroup": ButtonGroup,
-		EditorPresupuesto: EditorPresupuesto,
 		presupuestoDialogo: NuevoPresupuestoDialogo,
 	},
 
 	created() {
 		if (this.$store.state.logged) {
-			http.get(`/presupuesto/${this.$store.state.user.u_id}`)
+			http.get(`/presupuesto/userid/${this.$store.state.user.u_id}`)
 				.then(res => {
 					this.gridData = res.data;
 				})
@@ -121,10 +113,7 @@ export default {
 		},
 
 		onRowClick: function(ev) {
-			if (!this.editando) {
-				this.presupuestoSeleccionado = ev.dataItem;
-				this.toggleEditando();
-			}
+			this.$router.push(`/presupuesto/edit/${ev.dataItem.p_id}`);
 		},
 
 		borrarConceptosSeleccionados: function() {
@@ -142,20 +131,6 @@ export default {
 				}
 			});
 
-		},
-
-		toggleEditando: function() {
-			this.editando = !this.editando;
-		},
-		cerrarEditor: function(total, tabla, p_id) {
-			this.gridData.forEach((data) => {
-				if (data.p_id === p_id) {
-					data.tabla = tabla;
-					data.total = total;
-					return;
-				}
-			});
-			this.editando = false;
 		},
 	},
 }
