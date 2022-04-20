@@ -8,7 +8,7 @@
 		<span v-if="ok" class="k-icon k-i-check" :style="{ fontSize: '32px', color: 'darkblue' }"></span>
 		<span v-if="ok">Guardado</span>
 
-		<splitter class="splitter" :orientation="'horizontal'" :key="presupuesto">
+		<splitter class="splitter" :orientation="'horizontal'" :key="presupuesto" v-if="presupuesto">
 			<arbol
 				:ok="setOk"
 				:error="setError"
