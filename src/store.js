@@ -45,7 +45,6 @@ const store = createStore({
 			return new Promise((resolve, reject) => {
 				http.get("/logged")
 					.then(res => {
-						console.log(res);
 						commit("active", true);
 						if (!res.data.usuario) {
 							resolve(res);
