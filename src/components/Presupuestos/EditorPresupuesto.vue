@@ -50,7 +50,7 @@ export default {
 		http.get(`/presupuesto/presid/${this.$route.params.pid}`)
 			.then(res => {
 				this.presupuesto = res.data[0];
-				this.$route.name = res.data[0].nombre;
+				document.title = res.data[0].nombre;
 			})
 			.catch(err => {
 				// TODO feedback de los errores

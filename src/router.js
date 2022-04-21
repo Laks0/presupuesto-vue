@@ -7,6 +7,9 @@ const routes = [
 	{
 		path: "/",
 		component: MenuPrincipal,
+		meta: {
+			title: "Dataobra",
+		},
 	},
 
 	{
@@ -18,6 +21,14 @@ const routes = [
 const router = createRouter({
 	history: createWebHistory(),
 	routes,
+});
+
+router.beforeEach((to, _, next) => {
+	console.log(to);
+	if (to.meta.title)
+		document.title = to.meta.title;
+
+	next();
 });
 
 export default router;
