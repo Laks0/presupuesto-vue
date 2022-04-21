@@ -2,7 +2,7 @@ const PresupuestoLog = require("./PresupuestoLog");
 
 const nuevoConcepto = {
 	do: (source, info) => {
-		let newData = source.localData;
+		let newData = [...source.localData];
 		let log = new PresupuestoLog(nuevoConcepto);
 
 		const {repetido, tipo, parentId, staticId} = info;
