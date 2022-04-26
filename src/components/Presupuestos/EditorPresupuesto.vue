@@ -1,27 +1,37 @@
 <template>
 	<div class="main-div">
 		<k-button class="back" @click="goHome"><span class="k-icon k-i-arrow-left"></span></k-button>
-		<input type="file" id="file-input" :style="{ marginBottom: '10px', marginTop: '5px' }"/>
 
 		<loader v-if="cargando"/>
 		<span v-if="error" class="k-icon k-i-warning" :style="{ fontSize: '32px', color: 'red' }"></span>
 		<span v-if="ok" class="k-icon k-i-check" :style="{ fontSize: '32px', color: 'darkblue' }"></span>
 		<span v-if="ok">Guardado</span>
 
-		<splitter class="splitter" :orientation="'horizontal'" :key="presupuesto" v-if="presupuesto">
-			<arbol
-				:ok="setOk"
-				:error="setError"
-				:cargando="setCargando"
-				:customData="presupuesto"/>
+		<splitter
+				@change="onHorizontalChange"
+				:style="{height: '95vh'}"
+				:panes="paneles"
+				:orientation="'horizontal'">
 
-			<IFCViewer/>
+			<template v-slot:arbol>
+				<arbol
+					:key="presupuesto"
+					:ok="setOk"
+					:error="setError"
+					:cargando="setCargando"
+					:customData="presupuesto"/>
+			</template>
+
+			<template v-slot:ifc>
+				<IFCViewer/>
+			</template>
+
 		</splitter>
 	</div>
 </template>
 
 <script>
-import { Splitter } from "@progress/kendo-layout-vue-wrapper";
+import { Splitter } from "@progress/kendo-vue-layout";
 import { Loader } from "@progress/kendo-vue-indicators";
 import { Button } from "@progress/kendo-vue-buttons";
 import Presupuesto from "./Presupuesto.vue";
@@ -43,6 +53,11 @@ export default {
 			error: false,
 			ok: false,
 			presupuesto: null,
+
+			paneles: [
+				{ content: "arbol" },
+				{ content: "ifc", size: "50%" }
+			],
 		};
 	},
 
@@ -80,17 +95,15 @@ export default {
 		goHome() {
 			this.$router.push("/");
 		},
+
+		onHorizontalChange(event) {
+			this.paneles = event.newState;
+		},
 	},
 }
 </script>
 
 <style>
-.splitter {
-	height: 100%;
-}
-.main-div {
-	height: 95vh;
-}
 .back {
 	margin-right: 5px;
 }

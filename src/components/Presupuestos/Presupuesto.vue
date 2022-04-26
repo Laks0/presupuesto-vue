@@ -22,7 +22,7 @@
 			:navigatable="true"
 			:drop="checkDrop"
 			@save="onSave"
-			height="70vh"
+			height="95%"
 			:style="{lineHeight: '.5'}"
 			id="tree"
 			ref="tree"

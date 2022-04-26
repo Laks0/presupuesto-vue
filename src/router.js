@@ -24,7 +24,6 @@ const router = createRouter({
 });
 
 router.beforeEach((to, _, next) => {
-	console.log(to);
 	if (to.meta.title)
 		document.title = to.meta.title;
 

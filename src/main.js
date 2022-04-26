@@ -4,7 +4,7 @@ import store from "./store";
 import router from "./router";
 
 import "@progress/kendo-ui";
-//import "@progress/kendo-theme-bootstrap/dist/all.css";
+import "@progress/kendo-theme-bootstrap/dist/all.css";
 
 createApp(App)
 	.use(store)

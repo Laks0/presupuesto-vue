@@ -7,7 +7,6 @@
 </template>
 
 <script>
-import "./BootstrapUrban.css";
 export default {
 	name: "App",
 }
