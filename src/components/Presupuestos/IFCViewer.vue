@@ -12,8 +12,19 @@ export default {
 	mounted: function() {
 		const container = document.getElementById("viewer-container");
 		const viewer = new IfcViewerAPI({container});
-		viewer.addAxes();
 		viewer.addGrid();
+
+		const input = document.getElementById("file-input");
+		input.addEventListener("change",
+			async (changed) => {
+				await viewer.IFC.setWasmPath("../IFCjs/");
+
+				const file = changed.target.files[0];
+				const ifcURL = URL.createObjectURL(file);
+				await viewer.IFC.loadIfcUrl(ifcURL);
+			},
+			false
+		);
 	}
 }
 </script>

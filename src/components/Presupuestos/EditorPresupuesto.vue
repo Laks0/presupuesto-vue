@@ -23,7 +23,7 @@
 			</template>
 
 			<template v-slot:ifc>
-				<IFCViewer/>
+				<IFCViewer :key="paneles"/>
 			</template>
 
 		</splitter>
@@ -55,8 +55,8 @@ export default {
 			presupuesto: null,
 
 			paneles: [
-				{ content: "arbol" },
-				{ content: "ifc", size: "50%" }
+				{ content: "arbol", size: "50%" },
+				{ content: "ifc" }
 			],
 		};
 	},
