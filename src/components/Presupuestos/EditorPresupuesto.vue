@@ -97,7 +97,7 @@ export default {
 		},
 
 		onHorizontalChange(event) {
-			this.paneles = event.newState;
+			event.newState !== undefined? this.paneles = event.newState:"";
 		},
 	},
 }
