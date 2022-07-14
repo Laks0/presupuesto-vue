@@ -1,22 +1,22 @@
 <template>
 	<div :style="{height: '100%'}">
-		<k-button-group>
-			<k-button :disabled="!undo_enable" @click="undo">
+		<kbuttonGroup>
+			<kbutton :disabled="!undo_enable" @click="undo">
 				<span class="k-icon k-i-undo"/>
-			</k-button>
+			</kbutton>
 
-			<k-button :disabled="!redo_enable" @click="redo">
+			<kbutton :disabled="!redo_enable" @click="redo">
 				<span class="k-icon k-i-redo"/>
-			</k-button>
-		</k-button-group>
+			</kbutton>
+		</kbuttonGroup>
 
-		<treelistdatasource
+		<TreeListDataSource
 				ref="dataSource"
 				:data="localData"
 				:schema-model="model"
-				></treelistdatasource>
+				></TreeListDataSource>
 
-		<treelist
+		<TreeList
 			data-source-ref="dataSource"
 			:editable="{mode: 'incell', move: true}"
 			:navigatable="true"
@@ -28,29 +28,29 @@
 			ref="tree"
 		>
 
-			<treelist-column :field="'nombre'" :title="'Nombre'"></treelist-column>
+			<TreeListColumn :field="'nombre'" :title="'Nombre'"></TreeListColumn>
 
-			<treelist-column
+			<TreeListColumn
 				:editable="independientes"
 				:title="'Valor Unitario'"
 				:field="'vu'"
 				:format="'{0:c}'"
-			></treelist-column>
+			></TreeListColumn>
 
-			<treelist-column
+			<TreeListColumn
 				:field="'cantidad'"
 				:title="'Cantidad'"
-			></treelist-column>
+			></TreeListColumn>
 
-			<treelist-column
+			<TreeListColumn
 				:editable="noEditable"
 				:field="'precio'"
 				:title="'Precio'"
 				:format="'{0:c}'"
-			></treelist-column>
-		</treelist>
+			></TreeListColumn>
+		</TreeList>
 
-		<k-contextmenu class="menu" :target="'#tree'" :filter="'tbody > tr'" @open="contextMenuOpen" :key="seleccionado">
+		<ContextMenu class="menu" :target="'#tree'" :filter="'tbody > tr'" @open="contextMenuOpen" :key="seleccionado">
 			<li v-if="!seleccionadoIndependiente" @click="toggleRepetirDialogo"> Repetir Concepto	</li>
 			<li v-if="!seleccionadoIndependiente">
 				Nuevo
@@ -61,11 +61,11 @@
 				</ul>
 			</li>
 			<li @click="borrarConcepto">Borrar</li>
-		</k-contextmenu>
+		</ContextMenu>
 
-		<k-contextmenu :target="'#tree'">
+		<ContextMenu :target="'#tree'">
 			<li @click="nuevoConcepto('Rubro', null)">Nuevo Rubro</li>
-		</k-contextmenu>
+		</ContextMenu>
 
 		<repetir-dialogo
 				:abierto="repetirDialogoAbierto"
@@ -78,331 +78,311 @@
 	</div>
 </template>
 
-<script>
+<script setup>
+import { onMounted, computed, ref, reactive, defineProps} from "vue";
+
 import http from "../../http-common.js";
 import { TreeList, TreeListColumn } from "@progress/kendo-treelist-vue-wrapper";
 import { TreeListDataSource } from "@progress/kendo-datasource-vue-wrapper";
 import { ContextMenu } from "@progress/kendo-layout-vue-wrapper"
 import RepetirDialogo from "./Dialogos/RepetirConceptoDialogo.vue";
-import { Button, ButtonGroup } from "@progress/kendo-vue-buttons";
+import { Button as kbutton, ButtonGroup as kbuttonGroup } from "@progress/kendo-vue-buttons";
 
-const borrarConcepto = require("./AccionesPresupuesto/BorrarConcepto");
-const editarConcepto = require("./AccionesPresupuesto/EditarConcepto");
-const moverConcepto  = require("./AccionesPresupuesto/MoverConcepto");
-const nuevoConcepto  = require("./AccionesPresupuesto/NuevoConcepto");
+let acciones = {};
 
-export default {
-	name: "Presupuesto",
-	components: {
-		"treelist": TreeList,
-		"treelist-column": TreeListColumn,
-		"treelistdatasource": TreeListDataSource,
-		"k-contextmenu": ContextMenu,
-		"repetir-dialogo": RepetirDialogo,
-		"k-button": Button,
-		"k-button-group": ButtonGroup,
-	},
+acciones.borrarConcepto = require("./AccionesPresupuesto/BorrarConcepto");
+acciones.editarConcepto = require("./AccionesPresupuesto/EditarConcepto");
+acciones.moverConcepto  = require("./AccionesPresupuesto/MoverConcepto");
+acciones.nuevoConcepto  = require("./AccionesPresupuesto/NuevoConcepto");
 
-	props: {
-		customData: Object,
-		ok: Function,
-		error: Function,
-		cargando: Function,
-	},
+const localData  = ref([]);
+let staticData = reactive({});
 
-	mounted() {
-		if ("customData", this.customData) {
-			this.localData  = JSON.parse(this.customData.tabla);
-			this.staticData = JSON.parse(this.customData.static_data);
-			if (this.staticData === null) {
-				this.staticData = {};
-			}
+const props = defineProps({
+	customData: Object,
+	cargando: Function,
+	error: Function,
+	ok: Function
+});
+
+onMounted(() => {
+	if ("customData", props.customData) {
+		localData.value  = JSON.parse(props.customData.tabla);
+		staticData = JSON.parse(props.customData.static_data);
+		if (staticData === null) {
+			staticData = {};
 		}
+	}
+});
+
+const model = reactive({
+	id: "id",
+	parentId: "parentId",
+	fields: {
+		tipo: {field: "tipo", type: "string"},
+		// Rubro, Tarea, Mano, Material
+		nombre: {field: "nombre", type: "string", validation: {required: true}},
+		vu: {field: "vu", type: "number"},
+		cantidad: {field: "cantidad", type: "number"},
+		precio: {field: "precio", type: "number"},
 	},
+	expanded: true,
+});
 
-	computed: {
-		seleccionadoIndependiente: function() {
-			if (this.seleccionado === null)
-				return false;
+const repetirDialogoAbierto = ref(false);
 
-			const tipo = this.seleccionado.tipo;
-			return (tipo === "Mano" || tipo === "Material");
-		},
+let historial = [];
+let indexHistorial = 0;
 
-		seleccionadoRubro: function() {
-			if (this.seleccionado === null)
-				return false;
+function guardar() {
+	// Autoguardado en la base de datos
+	const tabla = JSON.stringify(localData.value);
+	const static_data = JSON.stringify(staticData);
+	const p_id = props.customData.p_id;
 
-			return this.seleccionado.tipo === "Rubro";
-		},
+	props.cargando();
 
-		undo_enable: function() {
-			return this.historial.length - this.indexHistorial > 0;
-		},
+	let total = 0
+	localData.value.forEach(concepto => {
+		if (concepto.parentId === null) {
+			total += concepto.precio;
+		}
+	});
 
-		redo_enable: function() {
-			return this.indexHistorial > 0;
-		},
-	},
-
-	data: function() {
-		return {
-			seleccionado: null, // Guarda el concepto seleccionado cuando se hace click derecho
-			model: {
-				id: "id",
-				parentId: "parentId",
-				fields: {
-					tipo: {field: "tipo", type: "string"},
-					// Rubro, Tarea, Mano, Material
-					nombre: {field: "nombre", type: "string", validation: {required: true}},
-					vu: {field: "vu", type: "number"},
-					cantidad: {field: "cantidad", type: "number"},
-					precio: {field: "precio", type: "number"},
-				},
-				expanded: true,
-			},
-
-			localData: [],
-			staticData: {},
-
-			repetirDialogoAbierto: false,
-
-			historial: [],
-			indexHistorial: 0,
-		};
-	},
-
-	methods: {
-		//// <FUNCIONES DE HISTORIAL> ////
-		// estaría bueno reemplazarlas por algún log manager
-		loguear: function (log) {
-			if (this.indexHistorial > 0) {
-				this.historial = this.historial.splice(this.indexHistorial);
-				this.indexHistorial = 0;
-			}
-
-			this.historial.unshift(log);
-		},
-
-		undo: function () {
-			const ultima = this.historial[this.indexHistorial];
-
-			this.localData = ultima.accion.undo(this, ultima);
-			this.indexHistorial += 1;
-
-			ultima.aCalcular.forEach(id => this.calcularPrecio(id));
-			if (ultima.estaticoACambiar)
-				this.actualizarConceptoEstatico(ultima.estaticoACambiar, ultima.info.keyCambiada, ultima.info.valorViejo);
-			//if (ultima.agregarEstatico) {
-			//	delete this.staticData[ultima.agregarEstatico.id];
-			//}
-
-			this.guardar();
-		},
-
-		redo: function () {
-			const siguiente = this.historial[this.indexHistorial - 1];
-
-			const response = siguiente.accion.do(this, siguiente.info);
-
-			this.localData = response.newData;
-			siguiente.aCalcular.forEach(id => this.calcularPrecio(id));
-			if (siguiente.estaticoACambiar)
-				this.actualizarConceptoEstatico(siguiente.estaticoACambiar, siguiente.info.keyCambiada, siguiente.info.value);
-			if (siguiente.agregarEstatico) {
-				this.staticData[siguiente.agregarEstatico.id] = siguiente.agregarEstatico;
-			}
-
-			this.indexHistorial -= 1;
-		},
-
-		ejecutar: function (accion, info) {
-			const response = accion.do(this, info);
-			const log = response.log;
-
-			this.localData = response.newData;
-			log.aCalcular.forEach(id => this.calcularPrecio(id));
-
-			if (log.estaticoACambiar) {
-				this.actualizarConceptoEstatico(log.estaticoACambiar, log.info.keyCambiada, log.info.value);
-			}
-
-			if (log.agregarEstatico) {
-				this.staticData[log.agregarEstatico.id] = log.agregarEstatico;
-			}
-
-			if (!response.log.logueado) {
-				this.loguear(response.log);
-				response.log.logueado = true;
-			}
-
-			this.guardar();
-		},
-		//// </FUNCIONES DE HISTORIAL> ////
-
-		guardar: function () {
-			// Autoguardado en la base de datos
-			const tabla = JSON.stringify(this.localData);
-			const static_data = JSON.stringify(this.staticData);
-			const p_id = this.customData.p_id;
-
-			this.cargando();
-
-			let total = 0
-			this.localData.forEach(concepto => {
-				if (concepto.parentId === null) {
-					total += concepto.precio;
-				}
-			});
-
-			http.put("/presupuesto", {tabla, static_data, p_id, total})
-				.then(() => {
-					this.ok();
-				})
-				.catch(() => {
-					this.error();
-				});
-		},
-
-		toggleRepetirDialogo: function() {
-			this.repetirDialogoAbierto = !this.repetirDialogoAbierto;
-		},
-
-		contextMenuOpen: function(ev) {
-			const tl = this.$refs["tree"].kendoWidget();
-			let dataItem = tl.dataItem(ev.target);
-
-			this.seleccionado = dataItem;
-		},
-
-		borrarConcepto: function() {
-			this.ejecutar(borrarConcepto, {concepto: this.seleccionado});
-		},
-
-		crearHijo: function(tipo) {
-			const id = this.seleccionado.id;
-
-			this.nuevoConcepto(tipo, id);
-		},
-
-		nuevoConcepto: function(tipo, parentId) {
-			this.ejecutar(nuevoConcepto, {
-				tipo,
-				parentId,
-				repetido: false
-			});
-		},
-
-		repetirConcepto: function(staticId, parentId) {
-			this.ejecutar(nuevoConcepto, {
-				staticId,
-				parentId,
-				repetido: true,
-			});
-		},
-
-		actualizarConceptoEstatico: function(id, key, valor) {
-			this.staticData[id][key] = valor;
-			let actualizar = [];
-
-			let data = [...this.localData];
-			for (let i = 0; i < data.length; i++) {
-				let concepto = data[i];
-
-				if (concepto.staticId != id)
-					continue;
-
-				concepto[key] = valor;
-				const targetPrecio = concepto.vu * concepto.cantidad;
-
-				if (concepto.precio != targetPrecio) {
-					concepto.precio = targetPrecio;
-					actualizar.push(concepto.parentId);
-				}
-			}
-
-			this.localData = data;
-
-			for (let i = 0; i < actualizar.length; i++) {
-				this.calcularPrecio(actualizar[i]);
-			}
-		},
-
-		// Encuentra un concepto por id
-		encontrarPorId: function(id) {
-			return this.localData.find(concepto => concepto.id === id);
-		},
-
-		// Funcion que se ejecuta en cada drop
-		checkDrop(ev) {
-			// Si el concepto que se está moviendo es un rubro
-			// o el destino es independiente, es inválido
-			if (ev.source.tipo === "Rubro" || this.independientes(ev.destination) || ev.source.tipo === ev.destination.tipo) {
-				ev.setValid(false);
-				return;
-			}
-
-			this.ejecutar(moverConcepto, {
-				id: ev.source.id,
-				destino: ev.destination.id,
-			});
-		},
-
-		// FUNCIONES BOOLEANAS DE EDITABLES //
-		noEditable: function () {
-			return false;
-		},
-		// Devuelve falso cuando es un concepto dependiente (rubro o tarea)
-		independientes: function (concepto) {
-			return concepto.tipo != "Rubro" && concepto.tipo != "Tarea";
-		},
-
-		// Función recursiva que calcula el acumulado de los precios de los hijos
-		calcularPrecio: function (id) {
-			const data = [...this.localData];
-			var aCalcular;
-			let precio = 0;
-
-			data.forEach((concepto) => {
-				if (concepto.parentId === id && concepto.precio != null) {
-					precio += concepto.precio;
-				}
-				if (concepto.id === id) {
-					aCalcular = concepto;
-				}
-			});
-
-			if (!aCalcular) return
-
-			aCalcular.vu = precio;
-			aCalcular.precio = precio * aCalcular.cantidad;
-			this.localData = data;
-
-			if (aCalcular.parentId != null) {
-				this.calcularPrecio(aCalcular.parentId);
-			}
-		},
-
-		//   EVENTOS   //
-
-		// editar
-		onSave: function (ev) {
-			ev.preventDefault();
-
-			const key = Object.keys(ev.values)[0];
-
-			this.ejecutar(editarConcepto, {
-				keyCambiada: key,
-				value: ev.values[key],
-				id: ev.model.id,
-			});
-		},
-
-		getTree: function() {
-			return JSON.stringify(this.localData);
-		},
-	},
+	http.put("/presupuesto", {tabla, static_data, p_id, total})
+		.then(() => {
+			props.ok();
+		})
+		.catch(() => {
+			props.error();
+		});
 }
+
+const undo_enable = computed(() => {
+	return historial.length - indexHistorial > 0;
+});
+
+const redo_enable = computed(() => {
+	return indexHistorial > 0;
+});
+
+/// Context Menu ///
+const seleccionado = ref(null);
+
+const seleccionadoIndependiente = computed(() => {
+	if (seleccionado.value === null)
+		return false;
+
+	const tipo = seleccionado.value.tipo;
+	return (tipo === "Mano" || tipo === "Material");
+});
+
+const seleccionadoRubro = computed(() => {
+	if (seleccionado.value === null)
+		return false;
+
+	return seleccionado.value.tipo === "Rubro";
+});
+
+//// <FUNCIONES DE HISTORIAL> ////
+// estaría bueno reemplazarlas por algún log manager
+function loguear(log) {
+	if (indexHistorial > 0) {
+		historial = historial.splice(indexHistorial);
+		indexHistorial = 0;
+	}
+
+	historial.unshift(log);
+}
+
+function undo() {
+	const ultima = historial[indexHistorial];
+
+	localData.value = ultima.accion.undo(ultima);
+	indexHistorial += 1;
+
+	ultima.aCalcular.forEach(id => calcularPrecio(id));
+	if (ultima.estaticoACambiar)
+		actualizarConceptoEstatico(ultima.estaticoACambiar, ultima.info.keyCambiada, ultima.info.valorViejo);
+	//if (ultima.agregarEstatico) {
+	//	delete staticData[ultima.agregarEstatico.id];
+	//}
+
+	guardar();
+}
+
+function redo() {
+	const siguiente = historial[indexHistorial - 1];
+
+	const response = siguiente.accion.do( siguiente.info);
+
+	localData.value = response.newData;
+	siguiente.aCalcular.forEach(id => calcularPrecio(id));
+	if (siguiente.estaticoACambiar)
+		actualizarConceptoEstatico(siguiente.estaticoACambiar, siguiente.info.keyCambiada, siguiente.info.value);
+	if (siguiente.agregarEstatico) {
+		staticData[siguiente.agregarEstatico.id] = siguiente.agregarEstatico;
+	}
+
+	indexHistorial -= 1;
+}
+
+function ejecutar(accion, info) {
+	const response = accion.do({localData: localData.value, staticData: staticData.value}, info);
+	const log = response.log;
+
+	localData.value = response.newData;
+	log.aCalcular.forEach(id => calcularPrecio(id));
+
+	if (log.estaticoACambiar) {
+		actualizarConceptoEstatico(log.estaticoACambiar, log.info.keyCambiada, log.info.value);
+	}
+
+	if (log.agregarEstatico) {
+		staticData[log.agregarEstatico.id] = log.agregarEstatico;
+	}
+
+	if (!response.log.logueado) {
+		loguear(response.log);
+		response.log.logueado = true;
+	}
+
+	guardar();
+}
+//// </FUNCIONES DE HISTORIAL> ////
+
+
+function toggleRepetirDialogo() {
+	repetirDialogoAbierto.value = !repetirDialogoAbierto.value;
+}
+
+function contextMenuOpen(ev) {
+	const tl = this.$refs["tree"].kendoWidget();
+	let dataItem = tl.dataItem(ev.target);
+
+	seleccionado.value = dataItem;
+}
+
+function borrarConcepto() {
+	ejecutar(borrarConcepto, {concepto: seleccionado});
+}
+
+function crearHijo(tipo) {
+	const id = seleccionado.value.id;
+
+	nuevoConcepto(tipo, id);
+}
+
+function nuevoConcepto(tipo, parentId) {
+	ejecutar(nuevoConcepto, {
+		tipo,
+		parentId,
+		repetido: false
+	});
+}
+
+function repetirConcepto(staticId, parentId) {
+	ejecutar(nuevoConcepto, {
+		staticId,
+		parentId,
+		repetido: true,
+	});
+}
+
+function actualizarConceptoEstatico(id, key, valor) {
+	staticData[id][key] = valor;
+	let actualizar = [];
+
+	let data = [...localData.value];
+	for (let i = 0; i < data.length; i++) {
+		let concepto = data[i];
+
+		if (concepto.staticId != id)
+			continue;
+
+		concepto[key] = valor;
+		const targetPrecio = concepto.vu * concepto.cantidad;
+
+		if (concepto.precio != targetPrecio) {
+			concepto.precio = targetPrecio;
+			actualizar.push(concepto.parentId);
+		}
+	}
+
+	localData.value = data;
+
+	for (let i = 0; i < actualizar.length; i++) {
+		calcularPrecio(actualizar[i]);
+	}
+
+	console.log(staticData);
+}
+
+// Funcion que se ejecuta en cada drop
+function checkDrop(ev) {
+	// Si el concepto que se está moviendo es un rubro
+	// o el destino es independiente, es inválido
+	if (ev.source.tipo === "Rubro" || independientes(ev.destination) || ev.source.tipo === ev.destination.tipo) {
+		ev.setValid(false);
+		return;
+	}
+
+	ejecutar(acciones.moverConcepto, {
+		id: ev.source.id,
+		destino: ev.destination.id,
+	});
+}
+
+// FUNCIONES BOOLEANAS DE EDITABLES //
+function noEditable() {
+	return false;
+}
+// Devuelve falso cuando es un concepto dependiente (rubro o tarea)
+function independientes(concepto) {
+	return concepto.tipo != "Rubro" && concepto.tipo != "Tarea";
+}
+
+// Función recursiva que calcula el acumulado de los precios de los hijos
+function calcularPrecio(id) {
+	const data = [...localData.value];
+	var aCalcular;
+	let precio = 0;
+
+	data.forEach((concepto) => {
+		if (concepto.parentId === id && concepto.precio != null) {
+			precio += concepto.precio;
+		}
+		if (concepto.id === id) {
+			aCalcular = concepto;
+		}
+	});
+
+	if (!aCalcular) return
+
+	aCalcular.vu = precio;
+	aCalcular.precio = precio * aCalcular.cantidad;
+	localData.value = data;
+
+	if (aCalcular.parentId != null) {
+		calcularPrecio(aCalcular.parentId);
+	}
+}
+
+//   EVENTOS   //
+
+// editar
+function onSave(ev) {
+	ev.preventDefault();
+
+	const key = Object.keys(ev.values)[0];
+
+	ejecutar(acciones.editarConcepto, {
+		keyCambiada: key,
+		value: ev.values[key],
+		id: ev.model.id,
+	});
+}
+
 </script>
 
 <style>
