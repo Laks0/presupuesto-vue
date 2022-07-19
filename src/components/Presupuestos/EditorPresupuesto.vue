@@ -36,7 +36,6 @@ import { Loader } from "@progress/kendo-vue-indicators";
 import { Button } from "@progress/kendo-vue-buttons";
 import Presupuesto from "./Presupuesto.vue";
 import IFCViewer from "./IFCViewer.vue";
-import http from "../../http-common.js";
 
 export default {
 	components: {
@@ -62,15 +61,11 @@ export default {
 	},
 
 	created: function() {
-		http.get(`/presupuesto/presid/${this.$route.params.pid}`)
-			.then(res => {
-				this.presupuesto = res.data[0];
-				document.title = res.data[0].nombre;
+		this.$store.dispatch("checkPresupuesto", this.$route.params.pid)
+			.then(() => {
+				this.presupuesto = this.$store.getters.presupuesto;
 			})
-			.catch(err => {
-				// TODO feedback de los errores
-				console.error(err);
-			});
+			.catch(err => console.error(err));
 	},
 
 	methods: {

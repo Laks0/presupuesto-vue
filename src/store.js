@@ -7,9 +7,14 @@ const store = createStore({
 		logged: false,
 		token: "",
 		active: false,
+		presupuesto: {},
 	},
 
 	mutations: {
+		guardarPresupuesto(state, data) {
+			state.presupuesto = data;
+		},
+
 		login(state, data) {
 			state.user = data.usuario;
 			state.logged = true;
@@ -33,6 +38,24 @@ const store = createStore({
 				})
 					.then(res => {
 						commit("login", res.data);
+						resolve(res);
+					})
+					.catch(err => {
+						reject(err);
+					});
+			});
+		},
+
+		// Función que recibe el presupuesto que queremos usar y se fija si es el mismo que ya tenemos guardado, si no, guarda el nuevo
+		checkPresupuesto({commit, state}, id) {
+			return new Promise((resolve, reject) => {
+				if (state.presupuesto.p_id === parseFloat(id)) {
+					resolve(state.presupuesto);
+				}
+
+				http.get(`/presupuesto/presid/${id}`)
+					.then(res => {
+						commit("guardarPresupuesto", res.data[0]);
 						resolve(res);
 					})
 					.catch(err => {
@@ -66,6 +89,7 @@ const store = createStore({
 		user: state => state.user,
 		token: state => state.token,
 		active: state => state.active,
+		presupuesto: state => state.presupuesto,
 	},
 })
 

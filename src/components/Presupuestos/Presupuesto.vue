@@ -87,6 +87,7 @@ import { TreeListDataSource } from "@progress/kendo-datasource-vue-wrapper";
 import { ContextMenu } from "@progress/kendo-layout-vue-wrapper"
 import RepetirDialogo from "./Dialogos/RepetirConceptoDialogo.vue";
 import { Button as kbutton, ButtonGroup as kbuttonGroup } from "@progress/kendo-vue-buttons";
+import { useStore } from "vuex";
 
 let acciones = {};
 
@@ -134,6 +135,8 @@ const repetirDialogoAbierto = ref(false);
 let historial = [];
 let indexHistorial = 0;
 
+const store = useStore();
+
 function guardar() {
 	// Autoguardado en la base de datos
 	const tabla = JSON.stringify(localData.value);
@@ -149,9 +152,12 @@ function guardar() {
 		}
 	});
 
-	http.put("/presupuesto", {tabla, static_data, p_id, total})
+	const pres = {tabla, static_data, p_id, total};
+
+	http.put("/presupuesto", pres)
 		.then(() => {
 			props.ok();
+			store.commit("guardarPresupuesto", pres);
 		})
 		.catch(() => {
 			props.error();
