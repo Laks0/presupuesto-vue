@@ -256,8 +256,10 @@ function toggleRepetirDialogo() {
 	repetirDialogoAbierto.value = !repetirDialogoAbierto.value;
 }
 
+const tree = ref(null);
+
 function contextMenuOpen(ev) {
-	const tl = this.$refs["tree"].kendoWidget();
+	const tl = tree.value.kendoWidget();
 	let dataItem = tl.dataItem(ev.target);
 
 	seleccionado.value = dataItem;
